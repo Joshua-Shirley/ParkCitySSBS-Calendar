@@ -1,25 +1,3 @@
-class Product {
-    constructor(date, element) {
-        this.date = new Date(date);
-        this.element = element;
-    }    
-    itemId = 0;
-    inStock = true;
-    peak = false;
-    scheduled = false;
-}
-
-Date.prototype.compareDate = function(dateB) {
-    if( this.getFullYear() == dateB.getFullYear() ) {
-        if( this.getMonth() == dateB.getMonth() ) {
-            if( this.getDate() == dateB.getDate() ) {
-                return true;
-            }
-        }
-    }
-    return false;
-};
-
 const calendar = {
     settings : {
         /* Group should be set as one of the following: fulltime, parttime32, parttime18 */
@@ -599,6 +577,28 @@ const calendar = {
             document.getElementById("holidayRequirement").innerText = calendar.stats.holiday;
         }
     }
+};
+
+class Product {
+    constructor(date, element) {
+        this.date = new Date(date);
+        this.element = element;
+    }    
+    itemId = 0;
+    inStock = true;
+    peak = false;
+    scheduled = false;
+}
+
+Date.prototype.compareDate = function(dateB) {
+    if( this.getFullYear() == dateB.getFullYear() ) {
+        if( this.getMonth() == dateB.getMonth() ) {
+            if( this.getDate() == dateB.getDate() ) {
+                return true;
+            }
+        }
+    }
+    return false;
 };
 
 calendar.initiate();
