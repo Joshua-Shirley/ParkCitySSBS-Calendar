@@ -1,19 +1,42 @@
+/*
+    Change the settings properties to get the 
+    enter dates using the MM/DD/YYYY format IE: "11/25/2024" inside a new Date() function like - new Date("11/25/2024")
+
+    STEP 1: - CALENDAR GROUP TYPE
+    group: "fulltime", "parttime32", "parttime18"  - choose one
+
+    STEP 2: - CALENDAR START & FINISH
+    Open and close dates to start and end the calendar
+
+    STEP 3: - HOLIDAYS
+    Update the holidays required
+    
+    STEP 4: - REQUIREMENTS
+    enter data using an integer (no decimals) followed by a comma
+    - peak days : 6, 32, 40,
+    - required days : 18, 32, 80
+    // FULLTIME STAFF
+    - daysAfterStart
+    - holiday 
+
+    STEP 5: - Button Text
+    Text should be simple and short (less than 10 characters).
+    Surronded by quotations.  "WORKING", "WORK", "TWERK", etc.
+
+    STEP 6: - SUMMARY TABLE TEXT
+
+*/
 const calendar = {
     settings : {
         /* Group should be set as one of the following: fulltime, parttime32, parttime18 */
         group : "fulltime",
         dates : {
             /* open and close determines what month the calendar starts and ends */
-            open : new Date("2024-11-02"),
-            close : new Date("2025-04-31"),
-            peak : [],
-            fullTimeStart: new Date("2024-12-15"),
-            holiday: [],
-        },
-        button : {
-            on : "On",
-            off: "Off",
-            full: "Full",
+            open : new Date("11/01/2024"),
+            close : new Date("04/21/2025"),
+            holiday: [new Date("12/25/2024"), new Date("01/01/2025")],
+            fullTimeStart: new Date("12/15/2024"),
+            peak : [], /* new Date("YEAR-MO-DT") , new Date("2024-12-01") */                        
         },
         requirements : {
             peakDays: 40,
@@ -21,6 +44,19 @@ const calendar = {
             daysAfterDec15: 80,
             holiday: 1,
         },
+        button : {
+            on : "On",
+            off: "Off",
+            full: "Full",
+        },
+        summary: {
+            scheduledDays : "Scheduled Days",
+            peakDays : "Peak Days",
+            officalStart : "Days After Offical Start",
+            holiday: "Holiday Requirement", 
+            column1Header : "Your Total",
+            column2Header : "Required",
+        }
     },   
     stats : {
         total: 0,
@@ -36,9 +72,9 @@ const calendar = {
                 this.daysAfterDec15 = calendar.data.products.filter(product => product.scheduled == true && product.date > calendar.settings.dates.fullTimeStart ).length;
                 var holidayCount = calendar.data.products.filter(product => product.scheduled == true && 
                     ( 
-                        product.date.compareDate(new Date(calendar.settings.dates.open.getFullYear(),11,25)) 
+                        product.date.compareDate(calendar.settings.dates.holiday[0]) 
                         || 
-                        product.date.compareDate(new Date(calendar.settings.dates.open.getFullYear() + 1,0,1))                 
+                        product.date.compareDate(calendar.settings.dates.holiday[1])                 
                     )
                 ).length;
                 if( holidayCount > 0 ){
@@ -472,21 +508,22 @@ const calendar = {
             summary.appendChild(container);
 
             var table = table("table","summary");
-
+            
+            // header row
             var row0 = row();
             row0.appendChild(cell("", "data-head"));
-            row0.appendChild(cell("Your Total", "data-head"));
-            row0.appendChild(cell("Required", "data-head"));
+            row0.appendChild(cell(calendar.settings.summary.column1Header, "data-head"));
+            row0.appendChild(cell(calendar.settings.summary.column2Header, "data-head"));
             table.appendChild(row0);
 
             var row1 = row();
-            row1.appendChild(cell("Scheduled Days", "data-key"));
+            row1.appendChild(cell(calendar.settings.summary.scheduledDays, "data-key"));
             row1.appendChild(cell("0", "data-value", "scheduledTotal"));
             row1.appendChild(cell( calendar.settings.requirements.requiredDays, "data-key-requirement"));
             table.appendChild(row1);
 
             var row2 = row();
-            row2.appendChild(cell("Peak Days", "data-key"));
+            row2.appendChild(cell(calendar.settings.summary.peakDays, "data-key"));
             row2.appendChild(cell("0", "data-value", "scheduledTotalPeak"));
             row2.appendChild(cell( calendar.settings.requirements.peakDays, "data-key-requirement"));
             table.appendChild(row2);
@@ -494,16 +531,16 @@ const calendar = {
             if(calendar.settings.group.toLowerCase() == "fulltime"){
                 // Days after start
                 var row3 = row();
-                row3.appendChild(cell("Days After December 15th","data-key"));
+                row3.appendChild(cell(calendar.settings.summary.officalStart,"data-key"));
                 row3.appendChild(cell("0", "data-value", "daysAfterStart"));
                 row3.appendChild(cell(calendar.settings.requirements.daysAfterDec15, "data-key-requirement"));
                 table.appendChild(row3);
 
                 // Holiday requirement
                 var row4 = row();
-                row4.appendChild(cell("Holiday Requirement", "data-key"));
+                row4.appendChild(cell(calendar.settings.summary.holiday, "data-key"));
                 row4.appendChild(cell("0", "data-value", "holidayRequirement"));
-                row4.appendChild(cell(calendar.settings.requirements.holiday , "data-key-requirement", ""));
+                row4.appendChild(cell(calendar.settings.requirements.holiday , "data-key-requirement"));
                 table.appendChild(row4);
             }
 
