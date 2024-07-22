@@ -24,7 +24,7 @@
     Surronded by quotations.  "WORKING", "WORK", "TWERK", etc.
 
     STEP 6: - SUMMARY TABLE TEXT
-
+    Text column and row headers for the summary table
 */
 const calendar = {
     settings : {
@@ -36,7 +36,8 @@ const calendar = {
             close : new Date("04/21/2025"),
             holiday: [new Date("12/25/2024"), new Date("01/01/2025")],
             fullTimeStart: new Date("12/15/2024"),
-            peak : [], /* new Date("YEAR-MO-DT") , new Date("2024-12-01") */                        
+            peak : [],   
+            //peak18 : [new Date("12/25/2024"), new Date("12/26/2024"), new Date("12/27/2024"), new Date("12/28/2024"),],                  
         },
         requirements : {
             peakDays: 40,
@@ -610,8 +611,10 @@ const calendar = {
             calendar.stats.update();
             document.getElementById("scheduledTotal").innerText = calendar.stats.total;
             document.getElementById("scheduledTotalPeak").innerText = calendar.stats.required;
-            document.getElementById("daysAfterStart").innerText = calendar.stats.daysAfterDec15;
-            document.getElementById("holidayRequirement").innerText = calendar.stats.holiday;
+            if(calendar.settings.group.toLowerCase() == "fulltime") {
+                document.getElementById("daysAfterStart").innerText = calendar.stats.daysAfterDec15;
+                document.getElementById("holidayRequirement").innerText = calendar.stats.holiday;
+            }
         }
     }
 };
