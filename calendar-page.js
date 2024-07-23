@@ -41,9 +41,14 @@ const calendar = {
         },
         requirements : {
             peakDays: 40,
-            requiredDays: 80,
+            requiredDays: 0,
+            // Full Time Requirements
             daysAfterDec15: 80,
             holiday: 1,
+            // Part Time 18 requirement
+            month1: 3,
+            month2: 3,
+            month3: 3,
         },
         button : {
             on : "On",
@@ -51,12 +56,20 @@ const calendar = {
             full: "Full",
         },
         summary: {
+            // Table Header Row
+            column0Header : "",
+            column1Header : "Your Total",
+            column2Header : "Required",
+
             scheduledDays : "Scheduled Days",
             peakDays : "Peak Days",
             officalStart : "Days After Offical Start",
             holiday: "Holiday Requirement", 
-            column1Header : "Your Total",
-            column2Header : "Required",
+
+            // Part Time 18 Requirement Labels
+            month1: "December",
+            month2: "January",
+            month3: "March",
         }
     },   
     stats : {
@@ -512,17 +525,19 @@ const calendar = {
             
             // header row
             var row0 = row();
-            row0.appendChild(cell("", "data-head"));
+            row0.appendChild(cell(calendar.settings.summary.column0Header, "data-head"));
             row0.appendChild(cell(calendar.settings.summary.column1Header, "data-head"));
             row0.appendChild(cell(calendar.settings.summary.column2Header, "data-head"));
             table.appendChild(row0);
 
+            // Scheduled Days
             var row1 = row();
             row1.appendChild(cell(calendar.settings.summary.scheduledDays, "data-key"));
             row1.appendChild(cell("0", "data-value", "scheduledTotal"));
             row1.appendChild(cell( calendar.settings.requirements.requiredDays, "data-key-requirement"));
             table.appendChild(row1);
 
+            // Peak Days
             var row2 = row();
             row2.appendChild(cell(calendar.settings.summary.peakDays, "data-key"));
             row2.appendChild(cell("0", "data-value", "scheduledTotalPeak"));
@@ -543,6 +558,27 @@ const calendar = {
                 row4.appendChild(cell("0", "data-value", "holidayRequirement"));
                 row4.appendChild(cell(calendar.settings.requirements.holiday , "data-key-requirement"));
                 table.appendChild(row4);
+            }
+
+            if(calendar.settings.group.toLowerCase() == "parttime18"){
+                // Month 1
+                var row5 = row();
+                row5.appendChild(cell(calendar.settings.summary.month1,"data-key"));
+                row5.appendChild(cell("0", "data-value", "daysAfterStart"));
+                row5.appendChild(cell(calendar.settings.requirements.month1, "data-key-requirement"));
+                table.appendChild(row5);
+                // Month 2
+                var row6 = row();
+                row6.appendChild(cell(calendar.settings.summary.month2,"data-key"));
+                row6.appendChild(cell("0", "data-value", "daysAfterStart"));
+                row6.appendChild(cell(calendar.settings.requirements.month2, "data-key-requirement"));
+                table.appendChild(row6);
+                // Month 3
+                var row7 = row();
+                row7.appendChild(cell(calendar.settings.summary.month3,"data-key"));
+                row7.appendChild(cell("0", "data-value", "daysAfterStart"));
+                row7.appendChild(cell(calendar.settings.requirements.month3, "data-key-requirement"));
+                table.appendChild(row7);
             }
 
             container.appendChild(table);

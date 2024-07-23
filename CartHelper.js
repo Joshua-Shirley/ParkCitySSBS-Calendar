@@ -233,8 +233,25 @@
             }
             return false;
         };
-    
-        cartHelper.sort();
 
+        /* WORK AROUNDS 
+        
+        the script needs to execute after the page completes loading.
+        this keeps checking for the container every 1/2 second before executing
+        */
+        function waitForPageLoad(selector, callback) {
+            let element = document.querySelector(selector);
+            if(element) {
+                callback(element);
+            }
+            else {
+                setTimeout(() => { waitForPageLoad(selector, callback); }, 500);
+            }
+        } 
+    
+        waitForPageLoad(".cart-container", (element) => {
+            cartHelper.sort();
+        });
+        
     } 
 })();
