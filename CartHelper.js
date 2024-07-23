@@ -73,15 +73,19 @@
                     var descriptionDiv = row.querySelector(".cart-row-desc a");
                     var description = descriptionDiv.innerText;
                     var match = description.match(/\d{1,2}\/\d{1,2}([\/\d{4}]*)/);
-                    var date = new Date(match[0]);
-                    if (date.getFullYear() == 2001) {
-                        var year = (new Date()).getFullYear();
-                        if (date.getMonth() < 7) {
-                            year += 1;
+                    if( match != null) {
+                        var date = new Date(match[0]);
+                        if (date.getFullYear() == 2001) {
+                            var year = (new Date()).getFullYear();
+                            if (date.getMonth() < 7) {
+                                year += 1;
+                            }
+                            date.setFullYear(year);
                         }
-                        date.setFullYear(year);
+                        list.push(new Product(row, date));
+                    } else {
+                        list.push(new Product(row, new Date(2024, 10 , 1) ));
                     }
-                    list.push(new Product(row, date));
                 });
                 this.products.push(...list);
                 return list;
