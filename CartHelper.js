@@ -41,13 +41,7 @@
             /* sort is called everytime the row count changes */
             sort: function () {            
                 this.init();
-                
-                // reset the products array
-                //this.products = [];
-                
-                // fetches all the cart rows and converts the elements in a Product class list
-                //this.fillProducts();
-    
+                    
                 // sort the current list
                 this.sortAscending();
     

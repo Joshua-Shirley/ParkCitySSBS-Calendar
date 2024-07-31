@@ -222,6 +222,7 @@ const calendar = {
                                 product.scheduled = true;
                             });
                         }
+                        
                     }
                 })
                 .catch(error => {
