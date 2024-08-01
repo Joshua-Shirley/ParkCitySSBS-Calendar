@@ -3,25 +3,43 @@
     enter dates using the MM/DD/YYYY format IE: "11/25/2024" inside a new Date() function like - new Date("11/25/2024")
 
     STEP 1: - CALENDAR GROUP TYPE
-    group: "fulltime", "parttime32", "parttime18"  - choose one
+    chose one "fulltime", "parttime4", "parttime32", "parttime18"
+        calendar.settings.group: "fulltime";
 
-    STEP 2: - CALENDAR START & FINISH
+    STEP 2: = PEAK DAY - TITLE INDICATOR
+    PRODUCT TITLE: "Ski - 11/27/2024 - Peak ( FT PT4 )"
+        calendar.settings.peakDayIndicator: "FT" 
+
+    STEP 3: - CALENDAR START & FINISH
     Open and close dates to start and end the calendar
+        calendar.settings.dates.open = new Date("11/01/2024");
+        calendar.settings.dates.close = new Date("04/21/2025");
 
-    STEP 3: - HOLIDAYS
-    Update the holidays required
-    
+
     STEP 4: - REQUIREMENTS
-    enter data using an integer (no decimals) followed by a comma
-    - peak days : 6, 32, 40,
-    - required days : 18, 32, 80
-    // FULLTIME STAFF
-    - daysAfterStart
-    - holiday 
+    // Total Day Requirement
+        calendar.settings.requirements.requiredDays = 32;
+    // Peak Day Requirement
+        calendar.settings.requirements.peakDays = 40;
+    // Official Days = after offical start
+        calendar.settings.requirements.officalDays = 80;
+    // Holiday Requirement
+        calendar.settings.requirements.holiday = 1;
+    // PT 18 
+        calendar.settings.requirements.month1 = 3;
+        calendar.settings.summary.month1 = "December";
+        calendar.settings.requirements.month2 = 3;
+        calendar.settings.summary.month2 = "February";
+        calendar.settings.requirements.month3 = 3;
+        calendar.settings.summary.month3 = "March";
 
     STEP 5: - Button Text
+    IF you want to change the add to cart button text
     Text should be simple and short (less than 10 characters).
     Surronded by quotations.  "WORKING", "WORK", "TWERK", etc.
+        calendar.settings.button.on = "Working";
+        calendar.settings.button.off = "Day Off";
+        calendar.settings.button.full = "Full";
 
     STEP 6: - SUMMARY TABLE TEXT
     Text column and row headers for the summary table
@@ -33,18 +51,20 @@ const calendar = {
         peakDayIndicator: "PT4",
         dates: {
             /* open and close determines what month the calendar starts and ends */
-            open: new Date("11/01/2024"),
+            open: new Date("11/01/2024"), 
             close: new Date("04/21/2025"),
-            holiday: [new Date("12/25/2024"), new Date("01/01/2025")],
-            fullTimeStart: new Date("12/15/2024"),
+            /* holiday */
+            holiday: [new Date(new Date().getFullYear(), 11, 25), new Date(new Date().getFullYear() +1, 0, 1)],
+            /* Full Time & Part Time 4 start and finish dates*/
+            officialStart: new Date("12/15/2024"),
+            officialEnd: new Date("04/05/2025"),
             peak: [],
-            //peak18 : [new Date("12/25/2024"), new Date("12/26/2024"), new Date("12/27/2024"), new Date("12/28/2024"),],                  
         },
         requirements: {
             peakDays: 40,
             requiredDays: 0,
             // Full Time Requirements
-            daysAfterDec15: 80,
+            officialDays: 80,
             holiday: 1,
             // Part Time 18 requirement
             month1: 3,
@@ -83,7 +103,7 @@ const calendar = {
             this.total = calendar.data.products.filter(product => product.scheduled == true).length;
             this.required = calendar.data.products.filter(product => product.scheduled == true && product.peak == true).length;
             if (calendar.settings.group.toLowerCase() == "fulltime") {
-                this.daysAfterDec15 = calendar.data.products.filter(product => product.scheduled == true && product.date > calendar.settings.dates.fullTimeStart).length;
+                this.daysAfterDec15 = calendar.data.products.filter(product => product.scheduled == true && product.date > calendar.settings.dates.officialStart).length;
                 var holidayCount = calendar.data.products.filter(product => product.scheduled == true &&
                     (
                         product.date.compareDate(calendar.settings.dates.holiday[0])
@@ -117,7 +137,13 @@ const calendar = {
         }, 1000);
     },
     rebuild: function () {
-        this.view.calendar(this.settings.this.data.products);
+
+        var months = calendar.view.containerHolder.querySelectorAll(".grid-container:not(.grid-summary");
+        months.forEach(m => m.classList.add("destroy"));
+
+        this.view.calendar(this.settings, this.data.products);
+
+        months.forEach(m => m.remove());
     },
     data: {
         products: [],
@@ -127,7 +153,6 @@ const calendar = {
         collectAll: function () {
             this.products = this.collectProducts();
             this.scheduled = this.fetchSchedule();
-            this.peakDates();
         },
         collectProducts: function () {
             const elements = document.querySelectorAll(".sqs-block-product");
@@ -154,11 +179,6 @@ const calendar = {
             // Update each product's HTML 
             products.forEach(function (product) {
                 product.inStock = isInStock(product.element);
-                if (calendar.settings.group.toLowerCase() == "parttime32") {
-                    product.peak = true;
-                } else {
-                    product.peak = false;
-                }
                 product.itemId = getProductId(product.element);
                 
             });
@@ -201,13 +221,17 @@ const calendar = {
             }
 
             function isPeakDate(element) {
-                // use built in "Peak" list 
-                var excerpt = element.querySelector(".product-title").innerText.toLowerCase();
-                if (excerpt.includes("peak"))
-                {
-                    if ( excerpt.includes(calendar.settings.peakDayIndicator.toLowerCase()) ) {
-                        return true;
+                // Peak dates are found in product titles with the following format = PEAK (FT, PT4, PT18)
+                try {
+                    var excerpt = element.querySelector(".product-title").innerText.toLowerCase();
+                    if (excerpt.includes("peak")) {
+                        if (excerpt.includes(calendar.settings.peakDayIndicator.toLowerCase())) {
+                            return true;
+                        }
                     }
+                }
+                catch {
+                    console.log("PEAK DATE ERROR: Product Title missing.  Display title for all products.", element.id);
                 }
                 return false;
             }
@@ -218,15 +242,6 @@ const calendar = {
                     var attribute = productBlock.getAttribute("data-current-context");
                     return (JSON.parse(attribute));
                 }
-            }
-
-            if (calendar.settings.group.toLowerCase() == "parttime18") {
-                products.forEach(product => product.peak = false);
-                products.filter(product => calendar.settings.dates.peak.some(peakDate => peakDate.compareDate(product.date))).forEach(
-                    product => {
-                        product.peak = true;
-                    }
-                )
             }
 
             return products;
@@ -259,6 +274,7 @@ const calendar = {
                             });
                         }
 
+                        // ADD ON FOR PROGRAM DATES
                         // find the products that are program products
                         calendar.data.programDates.forEach(item => {
                             try {
@@ -273,7 +289,6 @@ const calendar = {
                                 button.removeAttribute("data-product-type");
                             }
                             catch {
-
                                 if (item.date) {
                                     var localProduct = new Product(item.date, null);
                                     localProduct.inStock = true;
@@ -287,11 +302,13 @@ const calendar = {
                                 }
                             }
                         });
+
+                        calendar.rebuild();
                     }
+                })
+                .catch(error => {
+                    console.error("Error processing data:", error);
                 });
-                //.catch(error => {
-                //    console.error("Error processing data:", error);
-                //});
             function fillerDateBlock(item) {
                 var block = calendar.data.products[0].element.cloneNode(true);
 
@@ -359,20 +376,6 @@ const calendar = {
             };
             return inCart;
         },
-        peakDates: function () {
-            // moving the peak date indicator to the product title
-            
-
-            // MANUAL ENTRY
-            /*
-            var peakDates = [];
-            calendar.settings.dates.peak.forEach(dt => { peakDates.push(new Date(dt)); });
-            var peak = this.products.filter(product => peakDates.some(peakDate => peakDate.compareDate(product.date)));
-            if (peak != undefined) {
-                peak.forEach(day => { day.peak = true; });
-            }
-            */
-        }
     },
     view: {
         // this property directs placement of new elements
@@ -391,7 +394,7 @@ const calendar = {
             // Update each product's HTML nodes
             products.forEach(function (product) {
                 rewriteProduct(product);
-                tooltip(product);
+                calendar.view.tooltip(product);
             });
 
             // STEP 4
@@ -443,24 +446,25 @@ const calendar = {
                 button.innerText = settings.button.off;
                 button.parentElement.setAttribute("data-original-label", settings.button.on);
             }
-
-            function tooltip(product) {
-                var span = document.createElement("span");
-                span.classList.add("tooltip");
-                span.innerText = product.date.toDateString();
-                if (product.peak) {
-                    span.innerHTML += "<br>" + "Peak";
-                }
-                if (product.scheduled) {
-                    span.innerHTML += "<br>" + "Scheduled";
-                }
-                if (!product.inStock) {
-                    span.innerHTML += "<br>" + "No Availability";
-                }
-                product.element.appendChild(span);
-            }
-
             return products;
+        },
+        tooltip: function (product) {
+            var span = document.createElement("span");
+            span.classList.add("tooltip");
+            span.innerText = product.date.toDateString();
+            if (product.peak) {
+                span.innerHTML += "<br>" + "Peak";
+            }
+            if (product.program) {
+                span.innerHTML += "<br>" + calendar.data.localProgram;
+            }
+            if (product.scheduled) {
+                span.innerHTML += "<br>" + "Scheduled";
+            }
+            if (!product.inStock) {
+                span.innerHTML += "<br>" + "No Availability";
+            }
+            product.element.appendChild(span);
         },
         monthBlock: function (startDate, filteredList) {
             const month = startDate.getMonth();
@@ -698,7 +702,7 @@ const calendar = {
                 var row3 = row();
                 row3.appendChild(cell(calendar.settings.summary.officalStart, "data-key"));
                 row3.appendChild(cell("0", "data-value", "daysAfterStart"));
-                row3.appendChild(cell(calendar.settings.requirements.daysAfterDec15, "data-key-requirement"));
+                row3.appendChild(cell(calendar.settings.requirements.officialDays, "data-key-requirement"));
                 table.appendChild(row3);
 
                 // Holiday requirement
