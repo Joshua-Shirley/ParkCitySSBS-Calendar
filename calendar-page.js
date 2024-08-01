@@ -27,19 +27,20 @@
     Text column and row headers for the summary table
 */
 const calendar = {
-    settings : {
+    settings: {
         /* Group should be set as one of the following: fulltime, parttime32, parttime18 */
-        group : "fulltime",
-        dates : {
+        group: "PartTime4",
+        peakDayIndicator: "PT4",
+        dates: {
             /* open and close determines what month the calendar starts and ends */
-            open : new Date("11/01/2024"),
-            close : new Date("04/21/2025"),
+            open: new Date("11/01/2024"),
+            close: new Date("04/21/2025"),
             holiday: [new Date("12/25/2024"), new Date("01/01/2025")],
             fullTimeStart: new Date("12/15/2024"),
-            peak : [],   
+            peak: [],
             //peak18 : [new Date("12/25/2024"), new Date("12/26/2024"), new Date("12/27/2024"), new Date("12/28/2024"),],                  
         },
-        requirements : {
+        requirements: {
             peakDays: 40,
             requiredDays: 0,
             // Full Time Requirements
@@ -50,48 +51,47 @@ const calendar = {
             month2: 3,
             month3: 3,
         },
-        button : {
-            on : "On",
+        button: {
+            on: "On",
             off: "Off",
             full: "Full",
         },
         summary: {
             // Table Header Row
-            column0Header : "",
-            column1Header : "Your Total",
-            column2Header : "Required",
+            column0Header: "",
+            column1Header: "Your Total",
+            column2Header: "Required",
 
-            scheduledDays : "Scheduled Days",
-            peakDays : "Peak Days",
-            officalStart : "Days After Offical Start",
-            holiday: "Holiday Requirement", 
+            scheduledDays: "Scheduled Days",
+            peakDays: "Peak Days",
+            officalStart: "Days After Offical Start",
+            holiday: "Holiday Requirement",
 
             // Part Time 18 Requirement Labels
             month1: "December",
             month2: "January",
             month3: "March",
         }
-    },   
-    stats : {
+    },
+    stats: {
         total: 0,
         required: 0,
         // Used with full time only
         daysAfterDec15: 0,
         holiday: false,
-        update: function() {
+        update: function () {
             this.total = calendar.data.products.filter(product => product.scheduled == true).length;
-            this.required = calendar.data.products.filter(product => product.scheduled == true && product.peak == true ).length;
-            if(calendar.settings.group.toLowerCase() == "fulltime")
-                {
-                this.daysAfterDec15 = calendar.data.products.filter(product => product.scheduled == true && product.date > calendar.settings.dates.fullTimeStart ).length;
-                var holidayCount = calendar.data.products.filter(product => product.scheduled == true && 
-                    ( 
-                        product.date.compareDate(calendar.settings.dates.holiday[0]) 
-                        || 
-                        product.date.compareDate(calendar.settings.dates.holiday[1])                 
+            this.required = calendar.data.products.filter(product => product.scheduled == true && product.peak == true).length;
+            if (calendar.settings.group.toLowerCase() == "fulltime") {
+                this.daysAfterDec15 = calendar.data.products.filter(product => product.scheduled == true && product.date > calendar.settings.dates.fullTimeStart).length;
+                var holidayCount = calendar.data.products.filter(product => product.scheduled == true &&
+                    (
+                        product.date.compareDate(calendar.settings.dates.holiday[0])
+                        ||
+                        product.date.compareDate(calendar.settings.dates.holiday[1])
                     )
                 ).length;
-                if( holidayCount > 0 ){
+                if (holidayCount > 0) {
                     this.holiday = true;
                 } else {
                     this.holiday = false;
@@ -99,66 +99,76 @@ const calendar = {
             }
         }
     },
-    initiate : function() {     
-        this.data.collectAll();  
+    initiate: function () {
+        this.data.collectAll();
         // set the target placeholder
         this.view.containerHolder = this.data.products[0].element.parentElement;
+        // builds the summary block
         this.view.statistics();
+
         this.view.calendar(this.settings, this.data.products);
         this.view.peakDates(this.data.products);
         this.view.outofStockDates(this.data.products, this.settings.button.full);
         this.view.addClickEvent();
         // execute after short delay to allow cart to load
-        setTimeout( function() { 
-            calendar.view.scheduledDates(); 
+        setTimeout(function () {
+            calendar.view.scheduledDates();
             calendar.control.updateSummary();
-        }, 500);        
+        }, 1000);
     },
-    data : {
-        products : [],
-        scheduled : [],
-        collectAll : function() {
-            this.products = this.collectProducts();            
+    rebuild: function () {
+        this.view.calendar(this.settings.this.data.products);
+    },
+    data: {
+        products: [],
+        scheduled: [],
+        localProgram: null,
+        programDates: [],
+        collectAll: function () {
+            this.products = this.collectProducts();
             this.scheduled = this.fetchSchedule();
-            this.peakDates();            
+            this.peakDates();
         },
-        collectProducts : function() {
+        collectProducts: function () {
             const elements = document.querySelectorAll(".sqs-block-product");
-                // STEP 1
+            // STEP 1
             // get all the products displayed
             const products = [];
             const containerHolder = elements[0].parentElement;
-        
+
             elements.forEach(function (element) {
                 var date = parseDate(element);
                 var product = new Product(date, element);
+                product.title = productTitle(element);
                 product.peak = false;
                 product.scheduled = false;
+                product.program = false;
                 products.push(product);
             });
-        
+
             // STEP 2
             // sort the products by date ascending
             products.sort((a, b) => a.date - b.date);
-        
+
             // STEP 3
             // Update each product's HTML 
             products.forEach(function (product) {
-                product.inStock = isInStock(product.element);                
-                if(calendar.settings.group.toLowerCase() == "parttime32"){
+                product.inStock = isInStock(product.element);
+                if (calendar.settings.group.toLowerCase() == "parttime32") {
                     product.peak = true;
                 } else {
-                product.peak = false;
+                    product.peak = false;
                 }
-                product.itemId = getProductId(product.element);        
+                product.itemId = getProductId(product.element);
+                
             });
 
-            if(calendar.settings.group.toLowerCase() == "fulltime") {
-                products.forEach(product => {
-                    product.peak = isPeakDate(product.element);
-                });
-            }
-        
+            //if (calendar.settings.group.toLowerCase() == "fulltime") {
+            products.forEach(product => {
+                product.peak = isPeakDate(product.element);
+            });
+            //}
+
             function parseDate(element, year) {
                 var linkElement = element.querySelector("a");
                 var href = linkElement.href;
@@ -173,24 +183,35 @@ const calendar = {
                 var date = new Date(year, month, day);
                 return date;
             }
-        
+
             function isInStock(element) {
                 var productMark = element.querySelector(".sold-out");
-                if(productMark){
-                      return false;
+                if (productMark) {
+                    return false;
                 }
-                return true;      
+                return true;
             }
-        
+
+            function productTitle(element) {
+                var block = element.querySelector(".product-title");
+                if (block) {
+                    return block.innerText;
+                }
+                return null;
+            }
+
             function isPeakDate(element) {
                 // use built in "Peak" list 
-                var excerpt = element.querySelector(".product-title");
-                if(excerpt) {
-                    return excerpt.innerText.toLowerCase().includes("peak");
+                var excerpt = element.querySelector(".product-title").innerText.toLowerCase();
+                if (excerpt.includes("peak"))
+                {
+                    if ( excerpt.includes(calendar.settings.peakDayIndicator.toLowerCase()) ) {
+                        return true;
+                    }
                 }
                 return false;
             }
-        
+
             function getProductId(element) {
                 var productBlock = element.querySelector(".product-block");
                 if (productBlock != null) {
@@ -199,38 +220,113 @@ const calendar = {
                 }
             }
 
-            if(calendar.settings.group.toLowerCase() == "parttime18") {
+            if (calendar.settings.group.toLowerCase() == "parttime18") {
                 products.forEach(product => product.peak = false);
-                products.filter(product => calendar.settings.dates.peak.some( peakDate => peakDate.compareDate(product.date))).forEach(
+                products.filter(product => calendar.settings.dates.peak.some(peakDate => peakDate.compareDate(product.date))).forEach(
                     product => {
                         product.peak = true;
                     }
                 )
             }
-        
+
             return products;
         },
-        fetchSchedule : async function() {        
+        fetchSchedule: async function () {
             const inCart = new Set();
-            fetchData('https://www.parkcityssbs.com/api/commerce/shopping-cart')
+            
+            fetchData(shoppingCartUrl())
                 .then(data => {
                     if (data != null) {
+                        /* Check retail items for already scheduled */
                         data.entries.forEach(entry => inCart.add(entry.itemId));
-                        if (inCart.size > 0) {                      
+                        if (inCart.size > 0) {
                             var update = this.products.filter(product => inCart.has(product.itemId.id));
                             update.forEach(product => {
                                 product.scheduled = true;
                             });
                         }
-                        
+                        /* Check the cart for program products */
+                        // get all entries and sort for program products
+                        if (calendar.data.programDates.length == 0) {
+                            data.entries.forEach(entry => {
+                                if (entry.chosenVariant.sku.includes("-PG-")) {
+                                    var item = new cartItem(entry.id, entry.itemId, entry.chosenVariant.sku);
+                                    calendar.data.programDates.push(item);
+                                }
+                                if (entry.chosenVariant.sku.toLowerCase().startsWith("program")) {
+                                    calendar.data.localProgram = entry.chosenVariant.sku.replace("PROGRAM-", "").replaceAll("-", " ");
+                                }
+                            });
+                        }
+
+                        // find the products that are program products
+                        calendar.data.programDates.forEach(item => {
+                            try {
+                                var product = calendar.data.products.find(product => product.date.compareDate(item.date));
+                                product.program = true;
+                                product.scheduled = true;
+
+                                // disable the duplicate date from click
+                                var button = product.element.querySelector(".sqs-add-to-cart-button");
+                                button.removeAttribute("data-item-id");
+                                button.removeAttribute("data-collection-id");
+                                button.removeAttribute("data-product-type");
+                            }
+                            catch {
+
+                                if (item.date) {
+                                    var localProduct = new Product(item.date, null);
+                                    localProduct.inStock = true;
+                                    localProduct.itemId = item.itemId;
+                                    localProduct.peak = false;
+                                    localProduct.program = true;
+                                    localProduct.scheduled = true;
+                                    localProduct.title = calendar.data.localProgram;
+                                    localProduct.element = fillerDateBlock(item);
+                                    calendar.data.products.push(localProduct);
+                                }
+                            }
+                        });
                     }
-                })
-                .catch(error => {
-                    console.error('Error processing data:', error);
                 });
+                //.catch(error => {
+                //    console.error("Error processing data:", error);
+                //});
+            function fillerDateBlock(item) {
+                var block = calendar.data.products[0].element.cloneNode(true);
+
+                // top level
+                block.removeAttribute("id");
+                block.setAttribute("datetime", item.date.toISOString());
+
+                // block level
+                var productBlock = block.querySelector("div.product-block");
+                productBlock.removeAttribute("data-current-context");
+
+                // product title
+                var productTitle = block.querySelector(".product-title");
+                productTitle.innerText = calendar.data.localProgram + " " + item.date.toLocaleDateString();
+
+                // excerpt (date day)
+                var excerpt = block.querySelector("div.product-excerpt");
+                excerpt.innerText = item.date.getDate();
+
+                // button
+                var button = block.querySelector("div.sqs-add-to-cart-button");
+                button.removeAttribute("data-collection-id");
+                button.setAttribute("data-item-id", item.itemId);
+                button.removeAttribute("id");
+
+                // tooltip
+                var tooltip = block.querySelector("span.tooltip");
+                tooltip.innerHTML = item.date.toDateString();
+
+                return block;
+            }
+
             async function fetchData(url) {
                 try {
-                    const response = await fetch(url);    
+                    const response = await fetch(url);
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
@@ -241,95 +337,124 @@ const calendar = {
                     // Handle errors gracefully (e.g., display an error message to the user)
                 }
             }
-            return inCart;       
+            function shoppingCartUrl() {
+                const url = "https://www.parkcityssbs.com/api/commerce/shopping-cart?crumb={crumb}&mock=false&timecode={timecode}&calculateSubtotal=true";
+                const crumb = getCookie("crumb");
+                const now = new Date();
+                return url.replace("{crumb}", crumb).replace("{timecode}", now.valueOf());
+            }
+            function getCookie(name) {
+                const nameEQ = name + "=";
+                const ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') {
+                        c = c.substring(1, c.length);
+                    }
+                    if (c.indexOf(nameEQ) === 0) {
+                        return decodeURIComponent(c.substring(nameEQ.length));
+                    }
+                }
+                return null;
+            };
+            return inCart;
         },
-        peakDates : function() {
-            var peakDates = [];                       
-            calendar.settings.dates.peak.forEach( dt => { peakDates.push(new Date(dt));});
+        peakDates: function () {
+            // moving the peak date indicator to the product title
+            
+
+            // MANUAL ENTRY
+            /*
+            var peakDates = [];
+            calendar.settings.dates.peak.forEach(dt => { peakDates.push(new Date(dt)); });
             var peak = this.products.filter(product => peakDates.some(peakDate => peakDate.compareDate(product.date)));
-            if( peak != undefined) {
+            if (peak != undefined) {
                 peak.forEach(day => { day.peak = true; });
             }
+            */
         }
     },
-    view : {
+    view: {
         // this property directs placement of new elements
-        containerHolder : null,
-        calendar : function(settings, products) {    
+        containerHolder: null,
+        calendar: function (settings, products) {
             // STEP 1
             // set the container target
             //this.containerHolder = products[0].element.parentElement;
             //const containerHolder = products[0].element.parentElement;
-        
+
             // STEP 2
             // sort the products by date ascending
             products.sort((a, b) => a.date - b.date);
-        
+
             // STEP 3
             // Update each product's HTML nodes
             products.forEach(function (product) {
-                rewriteProduct(product);        
-                tooltip(product);       
+                rewriteProduct(product);
+                tooltip(product);
             });
-        
+
             // STEP 4
             // Find all the months
             //const months = getDistinctMonths(products);
-            const months = getOpenMonths(settings.dates.open, settings.dates.close);            
+            const months = getOpenMonths(settings.dates.open, settings.dates.close);
 
             // STEP 5
             // Build a grid container for each month
             // this list should be sorted to make sense for the winter ski seasn 10, 11, 0, 1, 2, 3, 4
             months.forEach(function (month) {
-                var filteredProducts = products.filter(function (product) { return product.date.getMonth() == month });        
-                
-                if( filteredProducts.length > 0) {
+                var filteredProducts = products.filter(function (product) { return product.date.getMonth() == month });
+
+                if (filteredProducts.length > 0) {
                     filteredProducts.sort((a, b) => b.date - a.date);
                     var startDate = filteredProducts[0].date;
                 }
                 else {
                     var year = settings.dates.open.getFullYear();
-                    if(month < 10) {
+                    if (month < 10) {
                         year++;
                     }
-                    var startDate = new Date(year,month, 1);
-                }             
-                  
+                    var startDate = new Date(year, month, 1);
+                }
+
                 calendar.view.containerHolder.appendChild(calendar.view.monthBlock(startDate, filteredProducts));
             });
-        
+
             // FUNCTIONS 
-            function getOpenMonths(openDate, closeDate){
+            function getOpenMonths(openDate, closeDate) {
                 var set = new Set();
                 var cycleDate = openDate;
-                while( cycleDate < closeDate) {
+                while (cycleDate < closeDate) {
                     set.add(cycleDate.getMonth());
-                    cycleDate = new Date( cycleDate.getFullYear(), cycleDate.getMonth() + 1, 1);
+                    cycleDate = new Date(cycleDate.getFullYear(), cycleDate.getMonth() + 1, 1);
                 }
                 return set;
             }
-        
+
             function rewriteProduct(product) {
                 var element = product.element;
-                var date = product.date;        
+                var date = product.date;
                 element.querySelector("a").innerText = date.toDateString();
                 element.querySelector(".product-excerpt").innerText = date.getDate();
                 element.setAttribute("datetime", date.toISOString());
                 var clsList = ["grid-item", "grid-date"];
-                element.classList.add(...clsList);   
+                element.classList.add(...clsList);
                 var button = element.querySelector(".sqs-add-to-cart-button-inner");
                 button.innerText = settings.button.off;
-                button.parentElement.setAttribute("data-original-label", settings.button.on);            
+                button.parentElement.setAttribute("data-original-label", settings.button.on);
             }
 
             function tooltip(product) {
                 var span = document.createElement("span");
                 span.classList.add("tooltip");
                 span.innerText = product.date.toDateString();
-                if(product.peak) {                    
-                    span.innerHTML = product.date.toDateString() + "<br>" + "Peak";
+                if (product.peak) {
+                    span.innerHTML += "<br>" + "Peak";
                 }
-                if(!product.inStock){
+                if (product.scheduled) {
+                    span.innerHTML += "<br>" + "Scheduled";
+                }
+                if (!product.inStock) {
                     span.innerHTML += "<br>" + "No Availability";
                 }
                 product.element.appendChild(span);
@@ -337,38 +462,42 @@ const calendar = {
 
             return products;
         },
-        monthBlock : function(startDate, filteredList) {
+        monthBlock: function (startDate, filteredList) {
             const month = startDate.getMonth();
             const year = startDate.getFullYear();
             const dayFirst = new Date(year, month, 1);
             const dayLast = new Date(year, month + 1, 0);
-            const daysInMonth = dayLast.getDate(); 
-                    
+            const daysInMonth = dayLast.getDate();
+
             // Month Container Div
             const container = buildGrid(dayFirst);
             // Add in the Title
             container.appendChild(monthTitle(dayFirst));
             // Add in the week day headers
             placeHeaderBlock(container, weekDayHeaderBlock());
-        
-            // Add in blank days for calendar to look like a calendar
+
+            // Add in blank empty blocks for calendar to look like a calendar
+            // If the first day of the month is Thursday then 4 empty blocks will be added.
             blankDays(container, dayFirst, blankDayBlock());
-        
+
             // Build a full month of days   
-                // create a holding set
-            const set = new Set();       
-        
+            // create a holding set
+            const set = new Set();
+            // The filtered list is a list of products in sorted order for the given month.
             var queue = filteredList.filter(obj => obj.date.getMonth() == month);
             var nextDate = queue.pop();
-        
-            for(var day = 1; day <= daysInMonth; day++) {
-                if(nextDate === undefined ){
+
+            // This is the core monthly calendar builder
+            // it iterates through the month and determines if a product should be inserted
+            for (var day = 1; day <= daysInMonth; day++) {
+                // 
+                if (nextDate === undefined) {
                     var date = new Date(year, month, day);
                     var filler = fillerDateBlock(date);
                     var product = new Product(date, filler);
                     set.add(product);
                 }
-                else if( nextDate.date.getDate() == day) {
+                else if (nextDate.date.getDate() == day) {
                     set.add(nextDate);
                     nextDate = queue.pop();
                 }
@@ -379,21 +508,21 @@ const calendar = {
                     set.add(product);
                 }
             }
-         
+
             // move the set into the container / calendar
             set.forEach(s => {
                 container.appendChild(s.element);
             });
-        
+
             function fillerDateBlock(date) {
                 const block = document.createElement("div");
                 block.Id = "block-yui-" + date.toISOString;
-                block.classList.add(...["sqs-block","product-block","sqs-block-product","grid-item","grid-date","filler-date"]);
+                block.classList.add(...["sqs-block", "product-block", "sqs-block-product", "grid-item", "grid-date", "filler-date"]);
                 const sqsBlock = document.createElement("div");
                 sqsBlock.classList.add("sqs-block-content");
                 block.append(sqsBlock);
                 const productBlock = document.createElement("div");
-                productBlock.classList.add(...["product-block","clear"]);
+                productBlock.classList.add(...["product-block", "clear"]);
                 sqsBlock.append(productBlock);
                 const productDetails = document.createElement("div");
                 productDetails.classList.add("productDetails");
@@ -409,14 +538,14 @@ const calendar = {
                 productDetails.append(productExcerpt);
                 return block;
             }
-        
+
             function buildGrid(date) {
                 var grid = document.createElement("div");
                 grid.id = "grid-container" + "-" + date.toLocaleDateString('default', { month: 'long' });
                 grid.classList.add("grid-container");
                 return grid;
             }
-        
+
             function monthTitle(date) {
                 var head = document.createElement("div");
                 var clsList = ["month-title", "grid-item", "grid-title"];
@@ -426,7 +555,7 @@ const calendar = {
                 head.append(title);
                 return head;
             }
-        
+
             function weekDayHeaderBlock() {
                 var block = document.createElement("div");
                 var clsList = ["sqs-block", "product-block", "sqs-block-product", "grid-item", "grid-header"];
@@ -439,7 +568,7 @@ const calendar = {
                 block.append(spanFull);
                 return block;
             }
-        
+
             function placeHeaderBlock(targetElement, block) {
                 const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
                 for (var i = 0; i < weekdays.length; i++) {
@@ -449,14 +578,14 @@ const calendar = {
                     targetElement.appendChild(block.cloneNode(true));
                 }
             }
-        
+
             function blankDayBlock() {
                 var block = document.createElement("div");
                 var clsList = ["sqs-block", "product-block", "sqs-block-product", "grid-item", "blank-day"];
                 block.classList.add(...clsList);
                 return block;
             }
-           
+
             function blankDays(targetElement, date, block) {
                 if (date.getDay() > 0) {
                     for (var i = 0; i < date.getDay(); i++) {
@@ -467,63 +596,82 @@ const calendar = {
                 }
             }
             return container;
-        },  
-        peakDates : function(products) {            
-            //products.forEach(product => product.element.classList.remove("peak"));
-
+        },
+        peakDates: function (products) {         
             // match the peak products and then add .peak to the class list
-            products.filter(product => product.peak == true).forEach(product => {    
-                product.element.classList.add("peak");        
+            products.filter(product => product.peak == true).forEach(product => {
+                product.element.classList.add("peak");
             });
         },
-        scheduledDates : function() {            
+        scheduledDates: function () {
             // because the schedule list changes often 
             // clear all the .scheduled first
             calendar.data.products.forEach(product => {
                 // only in stock products
-                if(product.inStock) {
-                    product.element.classList.remove("scheduled");
-                    var button = product.element.querySelector(".sqs-add-to-cart-button-inner");                                   
-                    if (button != null) {
-                        button.innerText = calendar.settings.button.off;
+                if (product.element) {
+                    if (product.inStock) {
+                        product.element.classList.remove("scheduled");
+                        var button = product.element.querySelector(".sqs-add-to-cart-button-inner");
+                        if (button != null) {
+                            button.innerText = calendar.settings.button.off;
+                        }
                     }
                 }
             });
             // find the current scheduled items and update
-            calendar.data.products.filter(product => product.scheduled == true).forEach(product => 
-            { 
-                product.element.classList.add("scheduled"); 
-                var button = product.element.querySelector(".sqs-add-to-cart-button-inner");
-                if (button != null) {
-                    button.innerText = calendar.settings.button.on;
+            calendar.data.products.filter(product => product.scheduled == true).forEach(product => {
+                if (product.element) {
+                    product.element.classList.add("scheduled");
+
+                    // update the button text
+                    var button = product.element.querySelector(".sqs-add-to-cart-button-inner");
+                    if (button != null) {
+                        button.innerText = calendar.settings.button.on;
+                    }
+
+                    // update the tooltip text so that it includes the program name
+                    if (product.program) {
+                        var tooltipElement = product.element.querySelector("span.tooltip");
+                        if (tooltipElement) {
+                            if (!tooltipElement.innerHTML.includes(calendar.data.localProgram)) {
+                                tooltipElement.innerHTML += "<br>" + calendar.data.localProgram;
+                            }
+                        }
+                    }
                 }
             });
         },
-        outofStockDates : function(products, buttonText) {
+        outofStockDates: function (products, buttonText) {
             products.filter(product => product.inStock == false).forEach(product => {
                 product.element.classList.add("outOfStock");
                 var button = product.element.querySelector(".sqs-add-to-cart-button-inner");
-                if(button != null) {
+                if (button != null) {
                     button.innerText = buttonText;
                     button.parentElement.setAttribute("data-original-label", buttonText);
-                }        
+                }
             });
         },
-        addClickEvent : function() {
+        programDates: function () {
+            products.filter(product => product.program == true).forEach(product => {
+                product.element.classList.add("local-program");
+            });
+        },
+
+        addClickEvent: function () {
             calendar.data.products.forEach(product => {
                 var button = product.element.querySelector(".sqs-add-to-cart-button");
-                button.addEventListener("click", function() { calendar.control.addToSchedule(this) });
+                button.addEventListener("click", function () { calendar.control.addToSchedule(this) });
             });
         },
-        statistics : function() {            
-            var summary = htmlElement("div",["grid-container","grid-summary"], "grid-container-Summary"); 
+        statistics: function () {
+            var summary = htmlElement("div", ["grid-container", "grid-summary"], "grid-container-Summary");
             summary.appendChild(title());
-           
-            var container = htmlElement("div","stats-container");
+
+            var container = htmlElement("div", "stats-container");
             summary.appendChild(container);
 
-            var table = table("table","summary");
-            
+            var table = table("table", "summary");
+
             // header row
             var row0 = row();
             row0.appendChild(cell(calendar.settings.summary.column0Header, "data-head"));
@@ -535,20 +683,20 @@ const calendar = {
             var row1 = row();
             row1.appendChild(cell(calendar.settings.summary.scheduledDays, "data-key"));
             row1.appendChild(cell("0", "data-value", "scheduledTotal"));
-            row1.appendChild(cell( calendar.settings.requirements.requiredDays, "data-key-requirement"));
+            row1.appendChild(cell(calendar.settings.requirements.requiredDays, "data-key-requirement"));
             table.appendChild(row1);
 
             // Peak Days
             var row2 = row();
             row2.appendChild(cell(calendar.settings.summary.peakDays, "data-key"));
             row2.appendChild(cell("0", "data-value", "scheduledTotalPeak"));
-            row2.appendChild(cell( calendar.settings.requirements.peakDays, "data-key-requirement"));
+            row2.appendChild(cell(calendar.settings.requirements.peakDays, "data-key-requirement"));
             table.appendChild(row2);
 
-            if(calendar.settings.group.toLowerCase() == "fulltime"){
+            if (calendar.settings.group.toLowerCase() == "fulltime") {
                 // Days after start
                 var row3 = row();
-                row3.appendChild(cell(calendar.settings.summary.officalStart,"data-key"));
+                row3.appendChild(cell(calendar.settings.summary.officalStart, "data-key"));
                 row3.appendChild(cell("0", "data-value", "daysAfterStart"));
                 row3.appendChild(cell(calendar.settings.requirements.daysAfterDec15, "data-key-requirement"));
                 table.appendChild(row3);
@@ -557,35 +705,35 @@ const calendar = {
                 var row4 = row();
                 row4.appendChild(cell(calendar.settings.summary.holiday, "data-key"));
                 row4.appendChild(cell("0", "data-value", "holidayRequirement"));
-                row4.appendChild(cell(calendar.settings.requirements.holiday , "data-key-requirement"));
+                row4.appendChild(cell(calendar.settings.requirements.holiday, "data-key-requirement"));
                 table.appendChild(row4);
             }
 
-            if(calendar.settings.group.toLowerCase() == "parttime18"){
+            if (calendar.settings.group.toLowerCase() == "parttime18") {
                 // Month 1
                 var row5 = row();
-                row5.appendChild(cell(calendar.settings.summary.month1,"data-key"));
+                row5.appendChild(cell(calendar.settings.summary.month1, "data-key"));
                 row5.appendChild(cell("0", "data-value", "daysAfterStart"));
                 row5.appendChild(cell(calendar.settings.requirements.month1, "data-key-requirement"));
                 table.appendChild(row5);
                 // Month 2
                 var row6 = row();
-                row6.appendChild(cell(calendar.settings.summary.month2,"data-key"));
+                row6.appendChild(cell(calendar.settings.summary.month2, "data-key"));
                 row6.appendChild(cell("0", "data-value", "daysAfterStart"));
                 row6.appendChild(cell(calendar.settings.requirements.month2, "data-key-requirement"));
                 table.appendChild(row6);
                 // Month 3
                 var row7 = row();
-                row7.appendChild(cell(calendar.settings.summary.month3,"data-key"));
+                row7.appendChild(cell(calendar.settings.summary.month3, "data-key"));
                 row7.appendChild(cell("0", "data-value", "daysAfterStart"));
                 row7.appendChild(cell(calendar.settings.requirements.month3, "data-key-requirement"));
                 table.appendChild(row7);
             }
 
             container.appendChild(table);
-                        
+
             function title() {
-                var head = htmlElement("div", ["grid-title","summary-title"]);
+                var head = htmlElement("div", ["grid-title", "summary-title"]);
                 var title = htmlElement("h2");
                 title.innerText = "Summary";
                 head.append(title);
@@ -593,48 +741,48 @@ const calendar = {
             }
 
             function table(cls, id) {
-                var element = htmlElement("table",cls,id);                
+                var element = htmlElement("table", cls, id);
                 return element;
             }
 
             function row(cls) {
-                var element = htmlElement("tr",cls);                
+                var element = htmlElement("tr", cls);
                 return element;
             }
 
             function cell(text, cls, id) {
-                var element = htmlElement("td",cls,id);
+                var element = htmlElement("td", cls, id);
                 element.innerText = text;
                 return element;
             }
 
-            function htmlElement(type, cls, id){
+            function htmlElement(type, cls, id) {
                 var element = document.createElement(type);
-                if(id != null) {
+                if (id != null) {
                     element.id = id;
                 }
-                if(cls != null) {
-                    if( typeof cls == "string"){
+                if (cls != null) {
+                    if (typeof cls == "string") {
                         element.classList.add(cls);
                     }
-                    if( cls instanceof Array){
+                    if (cls instanceof Array) {
                         element.classList.add(...cls);
                     }
-                }                
+                }
                 return element;
             }
-            this.containerHolder.appendChild(summary);           
+            this.containerHolder.appendChild(summary);
         }
     },
-    control : {
-        addToSchedule : function(element) {
+    control: {
+        addToSchedule: function (element) {
             // update the product object schedule 
             var code = element.getAttribute("data-item-id").trim();
             var match = calendar.data.products.filter(product => product.itemId.id == code);
             match.forEach(m => {
                 m.scheduled = true;
             });
-            
+
             // run the view to add the class object and button text
             calendar.view.scheduledDates();
 
@@ -644,11 +792,11 @@ const calendar = {
             // update the stats view
             calendar.control.updateSummary();
         },
-        updateSummary: function() {
+        updateSummary: function () {
             calendar.stats.update();
             document.getElementById("scheduledTotal").innerText = calendar.stats.total;
             document.getElementById("scheduledTotalPeak").innerText = calendar.stats.required;
-            if(calendar.settings.group.toLowerCase() == "fulltime") {
+            if (calendar.settings.group.toLowerCase() == "fulltime") {
                 document.getElementById("daysAfterStart").innerText = calendar.stats.daysAfterDec15;
                 document.getElementById("holidayRequirement").innerText = calendar.stats.holiday;
             }
@@ -660,22 +808,36 @@ class Product {
     constructor(date, element) {
         this.date = new Date(date);
         this.element = element;
-    }    
+    }
     itemId = 0;
+    title = null;
     inStock = true;
     peak = false;
     scheduled = false;
+    program = false;
+}
+/*
+cartItem used for collecting cart entries
+*/
+class cartItem {
+    constructor(cartRowId, itemId, sku) {
+        this.cartRowId = cartRowId;
+        this.itemId = itemId;
+        this.sku = sku;
+
+        var match = sku.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (match) { this.date = new Date(match[0]).addDays(1); }
+        else { this.date = null; }
+    }
 }
 
-Date.prototype.compareDate = function(dateB) {
-    if( this.getFullYear() == dateB.getFullYear() ) {
-        if( this.getMonth() == dateB.getMonth() ) {
-            if( this.getDate() == dateB.getDate() ) {
+Date.prototype.compareDate = function (dateB) {
+    if (this.getFullYear() == dateB.getFullYear()) {
+        if (this.getMonth() == dateB.getMonth()) {
+            if (this.getDate() == dateB.getDate()) {
                 return true;
             }
         }
     }
     return false;
 };
-
-calendar.initiate();
