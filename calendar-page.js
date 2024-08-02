@@ -1,48 +1,6 @@
 /*
-    Change the settings properties to get the 
-    enter dates using the MM/DD/YYYY format IE: "11/25/2024" inside a new Date() function like - new Date("11/25/2024")
-
-    STEP 1: - CALENDAR GROUP TYPE
-    chose one "fulltime", "parttime4", "parttime32", "parttime18"
-        calendar.settings.group: "fulltime";
-
-    STEP 2: = PEAK DAY - TITLE INDICATOR
-    PRODUCT TITLE: "Ski - 11/27/2024 - Peak ( FT PT4 )"
-        calendar.settings.peakDayIndicator: "FT" 
-
-    STEP 3: - CALENDAR START & FINISH
-    Open and close dates to start and end the calendar
-        calendar.settings.dates.open = new Date("11/01/2024");
-        calendar.settings.dates.close = new Date("04/21/2025");
-
-
-    STEP 4: - REQUIREMENTS
-    // Total Day Requirement
-        calendar.settings.requirements.requiredDays = 32;
-    // Peak Day Requirement
-        calendar.settings.requirements.peakDays = 40;
-    // Official Days = after offical start
-        calendar.settings.requirements.officalDays = 80;
-    // Holiday Requirement
-        calendar.settings.requirements.holiday = 1;
-    // PT 18 
-        calendar.settings.requirements.month1 = 3;
-        calendar.settings.summary.month1 = "December";
-        calendar.settings.requirements.month2 = 3;
-        calendar.settings.summary.month2 = "February";
-        calendar.settings.requirements.month3 = 3;
-        calendar.settings.summary.month3 = "March";
-
-    STEP 5: - Button Text
-    IF you want to change the add to cart button text
-    Text should be simple and short (less than 10 characters).
-    Surronded by quotations.  "WORKING", "WORK", "TWERK", etc.
-        calendar.settings.button.on = "Working";
-        calendar.settings.button.off = "Day Off";
-        calendar.settings.button.full = "Full";
-
-    STEP 6: - SUMMARY TABLE TEXT
-    Text column and row headers for the summary table
+READ ME - Instructions found at:
+https://github.com/Joshua-Shirley/ParkCitySSBS-Calendar/
 */
 const calendar = {
     settings: {
@@ -55,21 +13,26 @@ const calendar = {
             close: new Date("04/21/2025"),
             /* holiday */
             holiday: [new Date(new Date().getFullYear(), 11, 25), new Date(new Date().getFullYear() +1, 0, 1)],
+
             /* Full Time & Part Time 4 start and finish dates*/
-            officialStart: new Date("12/15/2024"),
-            officialEnd: new Date("04/05/2025"),
+            coreStart: new Date("12/15/2024"),
+            coreEnd: new Date("04/05/2025"),
+
+            thanksStart: new Date("11/24/2024"),
+            thanksEnd: new Date("11/30/2024"),
             peak: [],
         },
         requirements: {
-            peakDays: 40,
-            requiredDays: 0,
-            // Full Time Requirements
-            officialDays: 80,
+            peakDays: 0,
+            requiredDays: "", // might be able to drop //
+            // Core Season Requirement
+            coreDays: 80,
             holiday: 1,
+            thanksgiving: 5,
             // Part Time 18 requirement
-            month1: 3,
-            month2: 3,
-            month3: 3,
+            month1: 0,
+            month2: 0,
+            month3: 0,
         },
         button: {
             on: "On",
@@ -83,13 +46,14 @@ const calendar = {
             column2Header: "Required",
 
             scheduledDays: "Scheduled Days",
-            peakDays: "Peak Days",
-            officalStart: "Days After Offical Start",
+            peakDays: "Peak Days (Red)",
+            coreText: "Days in Core Season",
             holiday: "Holiday Requirement",
+            thanksgiving: "Thanksgiving Week",
 
             // Part Time 18 Requirement Labels
             month1: "December",
-            month2: "January",
+            month2: "February",
             month3: "March",
         }
     },
@@ -97,13 +61,30 @@ const calendar = {
         total: 0,
         required: 0,
         // Used with full time only
-        daysAfterDec15: 0,
+        coreRequirement: 0,
         holiday: false,
+        thanks: 0,
+        // part time stats
+        month1: 0,
+        month2: 0,
+        month3: 0,
         update: function () {
-            this.total = calendar.data.products.filter(product => product.scheduled == true).length;
-            this.required = calendar.data.products.filter(product => product.scheduled == true && product.peak == true).length;
-            if (calendar.settings.group.toLowerCase() == "fulltime") {
-                this.daysAfterDec15 = calendar.data.products.filter(product => product.scheduled == true && product.date > calendar.settings.dates.officialStart).length;
+            
+            const scheduledList = calendar.data.products.filter(product => product.scheduled == true);
+            this.total = scheduledList.length;
+            this.required = scheduledList.filter(product => product.peak == true).length;
+
+            const group = calendar.settings.group.toLowerCase();
+            if (group == "fulltime" || group == "parttime4") {
+
+                // dates between core start and core finish
+                this.coreRequirement = scheduledList.filter(product =>
+                    product.date > calendar.settings.dates.coreStart
+                    &&
+                    product.date < calendar.settings.dates.coreEnd
+                ).length;
+
+                // Update the holiday total
                 var holidayCount = calendar.data.products.filter(product => product.scheduled == true &&
                     (
                         product.date.compareDate(calendar.settings.dates.holiday[0])
@@ -116,6 +97,23 @@ const calendar = {
                 } else {
                     this.holiday = false;
                 }
+
+                // Update the thanksgiving total
+                this.thanks = scheduledList.filter(product =>
+                    product.date >= calendar.settings.dates.thanksStart
+                    &&
+                    product.date <= calendar.settings.dates.thanksEnd
+                ).length;
+            }
+            if (group == "parttime32") {
+
+            }
+            if (group == "parttime18") {
+
+                const monthNames = ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December"];
+                this.month1 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(this.settings.summary.month1) ).length;
+                this.month2 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(this.settings.summary.month2) ).length;
+                this.month3 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(this.settings.summary.month3) ).length;
             }
         }
     },
@@ -135,6 +133,12 @@ const calendar = {
             calendar.view.scheduledDates();
             calendar.control.updateSummary();
         }, 1000);
+
+        // Referrer document link
+        const d = new Date();
+        d.setTime(d.getTime() + (60 * 24 * 60 * 60 * 1000));
+        let expires = "expires=" + d.toUTCString();
+        document.cookie = "calendar" + "=" + window.location.pathname + ";" + expires + ";path=/;";
     },
     rebuild: function () {
 
@@ -668,6 +672,7 @@ const calendar = {
             });
         },
         statistics: function () {
+            const group = calendar.settings.group.toLowerCase();
             var summary = htmlElement("div", ["grid-container", "grid-summary"], "grid-container-Summary");
             summary.appendChild(title());
 
@@ -691,18 +696,21 @@ const calendar = {
             table.appendChild(row1);
 
             // Peak Days
-            var row2 = row();
-            row2.appendChild(cell(calendar.settings.summary.peakDays, "data-key"));
-            row2.appendChild(cell("0", "data-value", "scheduledTotalPeak"));
-            row2.appendChild(cell(calendar.settings.requirements.peakDays, "data-key-requirement"));
-            table.appendChild(row2);
+            if (group != "parttime32") {
+                var row2 = row();
+                row2.appendChild(cell(calendar.settings.summary.peakDays, "data-key"));
+                row2.appendChild(cell("0", "data-value", "scheduledTotalPeak"));
+                row2.appendChild(cell(calendar.settings.requirements.peakDays, "data-key-requirement"));
+                table.appendChild(row2);
+            }
+            
 
-            if (calendar.settings.group.toLowerCase() == "fulltime") {
-                // Days after start
+            if (group == "fulltime" || group == "parttime4") {
+                // Days in core season
                 var row3 = row();
-                row3.appendChild(cell(calendar.settings.summary.officalStart, "data-key"));
-                row3.appendChild(cell("0", "data-value", "daysAfterStart"));
-                row3.appendChild(cell(calendar.settings.requirements.officialDays, "data-key-requirement"));
+                row3.appendChild(cell(calendar.settings.summary.coreText, "data-key"));
+                row3.appendChild(cell("0", "data-value", "coreRequirement"));
+                row3.appendChild(cell(calendar.settings.requirements.coreDays, "data-key-requirement"));
                 table.appendChild(row3);
 
                 // Holiday requirement
@@ -711,25 +719,32 @@ const calendar = {
                 row4.appendChild(cell("0", "data-value", "holidayRequirement"));
                 row4.appendChild(cell(calendar.settings.requirements.holiday, "data-key-requirement"));
                 table.appendChild(row4);
+
+                // Thanksgiving Week
+                var row9 = row();
+                row9.appendChild(cell(calendar.settings.summary.thanksgiving, "data-key"));
+                row9.appendChild(cell("0", "data-value", "thanksRequirement"));
+                row9.appendChild(cell(calendar.settings.requirements.thanksgiving, "data-key-requirement"));
+                table.appendChild(row9);
             }
 
-            if (calendar.settings.group.toLowerCase() == "parttime18") {
+            if (group == "parttime18") {
                 // Month 1
                 var row5 = row();
                 row5.appendChild(cell(calendar.settings.summary.month1, "data-key"));
-                row5.appendChild(cell("0", "data-value", "daysAfterStart"));
+                row5.appendChild(cell("0", "data-value", "month1"));
                 row5.appendChild(cell(calendar.settings.requirements.month1, "data-key-requirement"));
                 table.appendChild(row5);
                 // Month 2
                 var row6 = row();
                 row6.appendChild(cell(calendar.settings.summary.month2, "data-key"));
-                row6.appendChild(cell("0", "data-value", "daysAfterStart"));
+                row6.appendChild(cell("0", "data-value", "month2"));
                 row6.appendChild(cell(calendar.settings.requirements.month2, "data-key-requirement"));
                 table.appendChild(row6);
                 // Month 3
                 var row7 = row();
                 row7.appendChild(cell(calendar.settings.summary.month3, "data-key"));
-                row7.appendChild(cell("0", "data-value", "daysAfterStart"));
+                row7.appendChild(cell("0", "data-value", "month3"));
                 row7.appendChild(cell(calendar.settings.requirements.month3, "data-key-requirement"));
                 table.appendChild(row7);
             }
@@ -797,12 +812,21 @@ const calendar = {
             calendar.control.updateSummary();
         },
         updateSummary: function () {
+            const group = calendar.settings.group.toLowerCase();
             calendar.stats.update();
             document.getElementById("scheduledTotal").innerText = calendar.stats.total;
-            document.getElementById("scheduledTotalPeak").innerText = calendar.stats.required;
-            if (calendar.settings.group.toLowerCase() == "fulltime") {
-                document.getElementById("daysAfterStart").innerText = calendar.stats.daysAfterDec15;
-                document.getElementById("holidayRequirement").innerText = calendar.stats.holiday;
+            if (group != "parttime32") {
+                document.getElementById("scheduledTotalPeak").innerText = calendar.stats.required;
+            }
+            if (group == "fulltime" || group == "parttime4") {
+                document.getElementById("coreRequirement").innerText = calendar.stats.coreRequirement;
+                document.getElementById("holidayRequirement").innerText = calendar.stats.holiday ? "Yes" : "No";
+                document.getElementById("thanksRequirement").innerText = calendar.stats.thanks;
+            }
+            if (group == "parttime18") {
+                document.getElementById("month1").innerText = calendar.stats.month1;
+                document.getElementById("month2").innerText = calendar.stats.month2;
+                document.getElementById("month3").innerText = calendar.stats.month3;
             }
         }
     }
