@@ -1,67 +1,73 @@
 .cart-container .cart-row {
-    padding: 0 !important;
-    margin: 0;
-    min-height: 32px;
-    align-items: center;
+	padding: 0 !important;
+	margin: 0;
+	min-height: 32px;
+	align-items: center;
 }
 
 .cart-container .cart-row .cart-row-img-wrapper,
 .cart-container .cart-row .cart-row-variants,
 .cart-container .cart-row .cart-row-price {
-    display: none !important;
+	display: none !important;
 }
 
 .cart-container .cart-row .cart-row-desc,
 .cart-container .cart-row .cart-row-price {
-    margin: 0 !important;
-    padding: 0;
+	margin: 0 !important;
+	padding: 0;
+}
+
+.cart-container .cart-row .cart-row-qty {
+	display: none;
 }
 
 .cart-container .cart-row a {
-    padding-left: 12px;
+	padding-left: 12px;
 }
 
 .cart-container .cart-row-desc {
-    min-width: 150px;
+	min-width: 150px;
 }
 
 .cart-container .cart-row button {
-    margin: -2px;
+	margin: -2px;
 }
 
 .cart-row:nth-child(2n) {
-    background-color:#ffedee;
+	background-color: #ffedee;
 }
+
 .cart-row:hover {
-    background-color: pink;
-    box-shadow: 0 0 2px 2px pink;
+	background-color: pink;
+	box-shadow: 0 0 2px 2px pink;
 }
 
 #sqs-cart-container .cartLinks {
-    display: flex;
-    flex-direction: row-reverse;
-    margin-bottom: 5px;    
+	display: flex;
+	flex-direction: row-reverse;
+	margin-bottom: 5px;
 }
 
-#sqs-cart-container .cartLinks *,
-#sqs-cart-container .cartLinks select {
-    color: #0975b3;
-    padding: 8px 12px;    
-    border-radius: 2px;
-    background-color: white;
-    font-weight: 500;
-    text-decoration: underline;
-    margin-left: 12px;
-}
+	#sqs-cart-container .cartLinks *,
+	#sqs-cart-container .cartLinks select {
+		color: #0975b3;
+		padding: 8px 12px;
+		border-radius: 2px;
+		background-color: white;
+		font-weight: 500;
+		text-decoration: underline;
+		margin-left: 12px;
+	}
 
-#sqs-cart-container .cartLinks a:hover {
-    box-shadow: 0 0 4px 1px #e1f4ff;
-}
+	#sqs-cart-container .cartLinks a:hover {
+		box-shadow: 0 0 4px 1px #e1f4ff;
+	}
 
 .cart-summary .cart-subtotal {
-    display: none;
+	display: none;
 }
 
 .cart-summary .cart-checkout {
-    margin-top: 50px;
+	margin-top: 50px;
 }
+

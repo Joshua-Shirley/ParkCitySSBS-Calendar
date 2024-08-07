@@ -2,6 +2,7 @@
 READ ME - Instructions found at:
 https://github.com/Joshua-Shirley/ParkCitySSBS-Calendar/
 */
+
 const calendar = {
     settings: {
         /* Group should be set as one of the following: fulltime, parttime32, parttime18 */
@@ -40,10 +41,13 @@ const calendar = {
             full: "Full",
         },
         summary: {
+            title: "Summary",
+
             // Table Header Row
             column0Header: "",
             column1Header: "Your Total",
             column2Header: "Required",
+            column3Header: "",
 
             scheduledDays: "Scheduled Days",
             peakDays: "Peak Days (Red)",
@@ -55,6 +59,8 @@ const calendar = {
             month1: "December",
             month2: "February",
             month3: "March",
+
+            checkmark: '<svg xmlns="http://www.w3.org/2000/svg" height="18px" width="18px" id="checkMark" viewBox="0 0 17.837 17.837"><g><path style="fill:green;" d="M16.145,2.571c-0.272-0.273-0.718-0.273-0.99,0L6.92,10.804l-4.241-4.27   c-0.272-0.274-0.715-0.274-0.989,0L0.204,8.019c-0.272,0.271-0.272,0.717,0,0.99l6.217,6.258c0.272,0.271,0.715,0.271,0.99,0   L17.63,5.047c0.276-0.273,0.276-0.72,0-0.994L16.145,2.571z"></path></g></svg >',
         }
     },
     stats: {
@@ -111,18 +117,18 @@ const calendar = {
             if (group == "parttime18") {
 
                 const monthNames = ["January", "February", "March", "April", "May", "June","July", "August", "September", "October", "November", "December"];
-                this.month1 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(this.settings.summary.month1) ).length;
-                this.month2 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(this.settings.summary.month2) ).length;
-                this.month3 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(this.settings.summary.month3) ).length;
+                this.month1 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(calendar.settings.summary.month1) ).length;
+                this.month2 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(calendar.settings.summary.month2) ).length;
+                this.month3 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(calendar.settings.summary.month3) ).length;
             }
-        }
+        },
     },
     initiate: function () {
         this.data.collectAll();
         // set the target placeholder
         this.view.containerHolder = this.data.products[0].element.parentElement;
         // builds the summary block
-        this.view.statistics();
+        this.view.statistics2();
 
         this.view.calendar(this.settings, this.data.products);
         this.view.peakDates(this.data.products);
@@ -384,6 +390,8 @@ const calendar = {
     view: {
         // this property directs placement of new elements
         containerHolder: null,
+        summaryTable: null,
+        summaryTableIds: [],
         calendar: function (settings, products) {
             // STEP 1
             // set the container target
@@ -671,127 +679,142 @@ const calendar = {
                 button.addEventListener("click", function () { calendar.control.addToSchedule(this) });
             });
         },
-        statistics: function () {
+        statistics2: function () {
             const group = calendar.settings.group.toLowerCase();
-            var summary = htmlElement("div", ["grid-container", "grid-summary"], "grid-container-Summary");
-            summary.appendChild(title());
-
-            var container = htmlElement("div", "stats-container");
-            summary.appendChild(container);
-
-            var table = table("table", "summary");
-
-            // header row
-            var row0 = row();
-            row0.appendChild(cell(calendar.settings.summary.column0Header, "data-head"));
-            row0.appendChild(cell(calendar.settings.summary.column1Header, "data-head"));
-            row0.appendChild(cell(calendar.settings.summary.column2Header, "data-head"));
-            table.appendChild(row0);
-
-            // Scheduled Days
-            var row1 = row();
-            row1.appendChild(cell(calendar.settings.summary.scheduledDays, "data-key"));
-            row1.appendChild(cell("0", "data-value", "scheduledTotal"));
-            row1.appendChild(cell(calendar.settings.requirements.requiredDays, "data-key-requirement"));
-            table.appendChild(row1);
-
-            // Peak Days
-            if (group != "parttime32") {
-                var row2 = row();
-                row2.appendChild(cell(calendar.settings.summary.peakDays, "data-key"));
-                row2.appendChild(cell("0", "data-value", "scheduledTotalPeak"));
-                row2.appendChild(cell(calendar.settings.requirements.peakDays, "data-key-requirement"));
-                table.appendChild(row2);
-            }
-            
-
+            const summary = calendar.settings.summary;
+            const requirements = calendar.settings.requirements;
+            let stats = [];
+                        
             if (group == "fulltime" || group == "parttime4") {
-                // Days in core season
-                var row3 = row();
-                row3.appendChild(cell(calendar.settings.summary.coreText, "data-key"));
-                row3.appendChild(cell("0", "data-value", "coreRequirement"));
-                row3.appendChild(cell(calendar.settings.requirements.coreDays, "data-key-requirement"));
-                table.appendChild(row3);
-
-                // Holiday requirement
-                var row4 = row();
-                row4.appendChild(cell(calendar.settings.summary.holiday, "data-key"));
-                row4.appendChild(cell("0", "data-value", "holidayRequirement"));
-                row4.appendChild(cell(calendar.settings.requirements.holiday, "data-key-requirement"));
-                table.appendChild(row4);
-
-                // Thanksgiving Week
-                var row9 = row();
-                row9.appendChild(cell(calendar.settings.summary.thanksgiving, "data-key"));
-                row9.appendChild(cell("0", "data-value", "thanksRequirement"));
-                row9.appendChild(cell(calendar.settings.requirements.thanksgiving, "data-key-requirement"));
-                table.appendChild(row9);
+                stats = [
+                    new SummaryTableRow(summary.scheduledDays, "" , "total"),
+                    new SummaryTableRow(summary.peakDays, requirements.peakDays, "required"),
+                    new SummaryTableRow(summary.coreText, requirements.coreDays, "coreRequirement"),
+                    new SummaryTableRow(summary.holiday, requirements.holiday, "holiday"),
+                    new SummaryTableRow(summary.thanksgiving, requirements.thanksgiving, "thanks"),
+                ];
             }
-
+            if (group == "parttime32") {
+                stats = [
+                    new SummaryTableRow(summary.scheduledDays, requirements.requiredDays, "total"),
+                ];
+            }
             if (group == "parttime18") {
-                // Month 1
-                var row5 = row();
-                row5.appendChild(cell(calendar.settings.summary.month1, "data-key"));
-                row5.appendChild(cell("0", "data-value", "month1"));
-                row5.appendChild(cell(calendar.settings.requirements.month1, "data-key-requirement"));
-                table.appendChild(row5);
-                // Month 2
-                var row6 = row();
-                row6.appendChild(cell(calendar.settings.summary.month2, "data-key"));
-                row6.appendChild(cell("0", "data-value", "month2"));
-                row6.appendChild(cell(calendar.settings.requirements.month2, "data-key-requirement"));
-                table.appendChild(row6);
-                // Month 3
-                var row7 = row();
-                row7.appendChild(cell(calendar.settings.summary.month3, "data-key"));
-                row7.appendChild(cell("0", "data-value", "month3"));
-                row7.appendChild(cell(calendar.settings.requirements.month3, "data-key-requirement"));
-                table.appendChild(row7);
+                stats = [
+                    new SummaryTableRow(summary.scheduledDays, requirements.requiredDays, "total"),
+                    new SummaryTableRow(summary.peakDays, requirements.peakDays, "required"),
+                    new SummaryTableRow(summary.month1, requirements.month1, "month1"),
+                    new SummaryTableRow(summary.month2, requirements.month2, "month2"),
+                    new SummaryTableRow(summary.month3, requirements.month3, "month3"),
+                ];
             }
 
-            container.appendChild(table);
+            this.summaryTableIds = stats;
 
-            function title() {
-                var head = htmlElement("div", ["grid-title", "summary-title"]);
-                var title = htmlElement("h2");
-                title.innerText = "Summary";
-                head.append(title);
-                return head;
-            }
-
-            function table(cls, id) {
-                var element = htmlElement("table", cls, id);
-                return element;
-            }
-
-            function row(cls) {
-                var element = htmlElement("tr", cls);
-                return element;
-            }
-
-            function cell(text, cls, id) {
-                var element = htmlElement("td", cls, id);
-                element.innerText = text;
-                return element;
-            }
-
-            function htmlElement(type, cls, id) {
-                var element = document.createElement(type);
-                if (id != null) {
-                    element.id = id;
-                }
-                if (cls != null) {
-                    if (typeof cls == "string") {
-                        element.classList.add(cls);
-                    }
-                    if (cls instanceof Array) {
-                        element.classList.add(...cls);
+            function builder(obj) {
+                if (!obj.hasOwnProperty("tag")) { return null; }
+                var block = document.createElement(obj["tag"]);
+                if (obj.hasOwnProperty("class")) {
+                    if (Array.isArray(obj["class"])) {
+                        block.classList.add(...obj["class"]);
+                    } else {
+                        block.classList.add(obj["class"]);
                     }
                 }
-                return element;
+                if (obj.hasOwnProperty("id")) {
+                    block.id = obj["id"];
+                }
+                if (obj.hasOwnProperty("innerText")) {
+                    block.innerText = obj["innerText"];
+                }
+                if (obj.hasOwnProperty("innerHTML")) {
+                    if (typeof obj["innerHTML"] === "object") {
+                        block.appendChild(builder(obj["innerHTML"]));
+                    }
+                    else {
+                        block.innerHTML = obj["innerHTML"];
+                    }
+                }
+                if (obj.hasOwnProperty("children")) {
+                    if (Array.isArray(obj["children"])) {
+                        obj["children"].forEach(child => {
+                            block.append(builder(child));
+                        });
+                    }
+                    else if (typeof obj["children"] === "object") {
+                        block.append(builder(obj["children"]));
+                    }
+                }
+                return block;
             }
-            this.containerHolder.appendChild(summary);
-        }
+            function objectToTable(obj) {
+                var table = { "tag": "table", "id": "summary", "class": "table", "children": [], };
+                table.children.push({ "tag": "thead", "children": [] });
+                var headerRow = {
+                    "tag": "tr", "children": [
+                        { "tag": "th", "innerText": calendar.settings.summary.column0Header },
+                        { "tag": "th", "innerText": calendar.settings.summary.column1Header },
+                        { "tag": "th", "innerText": calendar.settings.summary.column2Header },
+                        { "tag": "th", "innerText": calendar.settings.summary.column3Header }
+                    ]
+                };
+                table.children[0].children.push(headerRow);
+                table.children.push({ "tag": "tbody", "children": [], });
+                obj.forEach(row => {
+                    var row = {
+                        "tag": "tr", "children": [
+                            { "tag": "td", "class": "data-key", "innerText": row.name },
+                            { "tag": "td", "class": "data-value", "id": "data-value-" + row.id, "innerText": row.current },
+                            { "tag": "td", "class": "data-required", "id": "data-required-" + row.id, "innerText": row.required },
+                            { "tag": "td", "class": "data-icon", "innerHTML": "" },
+                        ]
+                    };
+                    table.children[1].children.push(row);
+                });
+                return table;
+            }
+            function registerIds() {
+                calendar.view.summaryTableIds.forEach(row => {
+                    row.dom = calendar.view.summaryTable.querySelector("#" + row.id);
+                });
+            }
+            // register an id for each td data-value cell.
+
+            var block = {
+                "tag": "div",
+                "id": "grid-container-Summary",
+                "class": ["grid-container", "grid-summary"],
+                "children":
+                    [
+                        {
+                            "tag": "div",
+                            "class": ["grid-title", "summary-title"],
+                            "children": [
+                                {
+                                    "tag": "h2",
+                                    "innerText": calendar.settings.summary.title,
+                                }
+                            ],
+                        },
+                        {
+                            "tag": "div",
+                            "class": "stats-container",
+                            "children": [
+                                objectToTable(stats),
+                            ]
+                        }
+                    ]
+            }; 
+
+            this.summaryTable = builder(block);
+
+            this.summaryTableIds.forEach(row => {
+                row.domReference = this.summaryTable.querySelector("#data-value-" + row.id);
+            });
+
+            this.containerHolder.appendChild(this.summaryTable);
+        },
+         
     },
     control: {
         addToSchedule: function (element) {
@@ -814,20 +837,12 @@ const calendar = {
         updateSummary: function () {
             const group = calendar.settings.group.toLowerCase();
             calendar.stats.update();
-            document.getElementById("scheduledTotal").innerText = calendar.stats.total;
-            if (group != "parttime32") {
-                document.getElementById("scheduledTotalPeak").innerText = calendar.stats.required;
-            }
-            if (group == "fulltime" || group == "parttime4") {
-                document.getElementById("coreRequirement").innerText = calendar.stats.coreRequirement;
-                document.getElementById("holidayRequirement").innerText = calendar.stats.holiday ? "Yes" : "No";
-                document.getElementById("thanksRequirement").innerText = calendar.stats.thanks;
-            }
-            if (group == "parttime18") {
-                document.getElementById("month1").innerText = calendar.stats.month1;
-                document.getElementById("month2").innerText = calendar.stats.month2;
-                document.getElementById("month3").innerText = calendar.stats.month3;
-            }
+
+            // Update the stats in summaryTable
+            calendar.view.summaryTableIds.forEach(row => {
+                row.domReference.innerText = calendar.stats[row.reference];
+                row.domReference.nextSibling.nextSibling.innerHTML = (calendar.stats[row.reference] >= row.required) ? calendar.settings.summary.checkmark : "";
+            });
         }
     }
 };
@@ -857,6 +872,18 @@ class cartItem {
         if (match) { this.date = new Date(match[0]).addDays(1); }
         else { this.date = null; }
     }
+}
+class SummaryTableRow {
+    constructor(name, required, reference ) {
+        this.name = name;
+        this.current = 0;
+        this.required = required;
+        this.test = false;
+        this.id = (Math.floor(Math.random() * 100000000) + 10000000);
+
+        this.reference = reference;
+    }
+    domReference = null;
 }
 
 Date.prototype.compareDate = function (dateB) {

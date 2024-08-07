@@ -1,280 +1,284 @@
 :root {
-    --white: rgb(255,255,255);
-    --menuBackground: rgb(229 229 229);
-    --title: rgb(51, 51, 51);        
-    --navActive: rgb(164, 25, 48);
-    --navSecond: rgba(18, 18, 18, 0.53);
-    --link: rgb(9, 117, 179);        
-    --body: rgb(62, 61, 61);
-    --heading: rgb(51, 51, 51);
-    --button: rgb(63,63,63);   
-
-    --grey: rgb(51, 51, 51);
-    --fillerDate: rgb(211, 211, 211);
-
-    --buttonBackGround: rgb(9 118 180);
-    --buttonColor: rgb(236 248 255);
-    --buttonBorder: rgb(9 118 180);
-
-    --blueDate: rgb(9, 118, 180);
-    --blueDateBorder:  #a6c5d7;
-    --blueDateBackGround: #eef9ff;
-    
-    --redDateBorder: rgb(255, 175, 175);
-    --redDateBackGround: rgb(255, 238, 238);
-    --buttonPeakColor: white;
-    --buttonPeakBackGround: red;
-    --buttonPeakBorder: red;
-    
-    --outOfStockBorder: rgb(154 154 154);
-    --outOfStockBackGround: rgb(219 219 219);
-
-    --scheduled: rgb(36 175 80);
-
-    --dateHoverBackGround: rgb(245 245 245 / 40%);
-    --dateHoverShadow: rgb(172 172 172 / 29%);
-
-    --tooltipBackground: rgb(33 36 38);    
+	--white: rgb(255,255,255);
+	--menuBackground: rgb(229 229 229);
+	--title: rgb(51, 51, 51);
+	--navActive: rgb(164, 25, 48);
+	--navSecond: rgba(18, 18, 18, 0.53);
+	--link: rgb(9, 117, 179);
+	--body: rgb(62, 61, 61);
+	--heading: rgb(51, 51, 51);
+	--button: rgb(63,63,63);
+	--grey: rgb(51, 51, 51);
+	--fillerDate: rgb(211, 211, 211);
+	--buttonBackGround: rgb(9 118 180);
+	--buttonColor: rgb(236 248 255);
+	--buttonBorder: rgb(9 118 180);
+	--blueDate: rgb(9, 118, 180);
+	--blueDateBorder: #a6c5d7;
+	--blueDateBackGround: #eef9ff;
+	--redDateBorder: rgb(255, 175, 175);
+	--redDateBackGround: rgb(255, 238, 238);
+	--buttonPeakColor: white;
+	--buttonPeakBackGround: red;
+	--buttonPeakBorder: red;
+	--outOfStockBorder: rgb(154 154 154);
+	--outOfStockBackGround: rgb(219 219 219);
+	--scheduled: rgb(36 175 80);
+	--dateHoverBackGround: rgb(245 245 245 / 40%);
+	--dateHoverShadow: rgb(172 172 172 / 29%);
+	--tooltipBackground: rgb(33 36 38);
 }
 
 .hide {
-    display: none;
+	display: none;
 }
 /* hide -start */
 .product-price {
-    display: none;
+	display: none;
 }
 
 .grid-item .image-container {
-    display: none;
+	display: none;
 }
 
 .grid-item .product-title {
-    display: none !important;
+	display: none !important;
 }
 
 span.full {
-    display: none;
+	display: none;
 }
 /* hide stop */
 
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 0;
-    background-color: var(--menuBackground);    
-    padding-top: 8px;
-    padding-right: 4px;
-    padding-bottom: 30px;
-    padding-left: 4px;
-    margin-bottom: 30px;
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 0;
+	background-color: var(--menuBackground);
+	padding-top: 8px;
+	padding-right: 4px;
+	padding-bottom: 30px;
+	padding-left: 4px;
+	margin-bottom: 30px;
 }
 
 .grid-title {
-    grid-column: 1;
-    grid-column-start: 1;
-    grid-column-end: 8;
-    background-color: var(--menuBackground) !important;    
+	grid-column: 1;
+	grid-column-start: 1;
+	grid-column-end: 8;
+	background-color: var(--menuBackground) !important;
 }
 
-.grid-title h2 {
-    font-size: 1.6em;
-    font-weight: bold;
-    color: var(--title);
-}
+	.grid-title h2 {
+		font-size: 1.6em;
+		font-weight: bold;
+		color: var(--title);
+	}
 
 .grid-item {
-    padding: 4px !important;
-    margin: 4px;
-    background-color: var(--white);
-    border: 1px solid transparent;
-    border-radius: 4px 1px;
+	padding: 4px !important;
+	margin: 4px;
+	background-color: var(--white);
+	border: 1px solid transparent;
+	border-radius: 4px 1px;
 }
 
-.grid-item:not(.grid-title):not(.grid-header) {
-    min-height: 82px;
-}
+	.grid-item:not(.grid-title):not(.grid-header) {
+		min-height: 82px;
+	}
 
-.grid-item .div {
-    background-color: var(--white) !important;
-}
+	.grid-item .div {
+		background-color: var(--white) !important;
+	}
 
-.grid-item.grid-date.filler-date {
-    color: var(--fillerDate);
-}
+	.grid-item.grid-date.filler-date {
+		color: var(--fillerDate);
+	}
 
 .grid-header {
-    background-color: var(--navActive);
-    color: var(--white);
-    padding: 12px 0 !important;
-    text-align: center;
+	background-color: var(--navActive);
+	color: var(--white);
+	padding: 12px 0 !important;
+	text-align: center;
 }
 
 .grid-item.grid-header {
-    background-color: var(--body);
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+	background-color: var(--body);
+	padding-top: 8px !important;
+	padding-bottom: 8px !important;
 }
 
 .grid-header h4 {
-    padding: 0;
-    margin: 0;
-    background-color: var(--navSecond) !important;
+	padding: 0;
+	margin: 0;
+	background-color: var(--navSecond) !important;
 }
 
 .product-excerpt {
-    font-size: 1.6em;
-    font-weight: bold;
-    color: var(--button);
-    text-align: center;
-    margin: .75em 0;
-    z-index: 10;
-    position: relative;
+	font-size: 1.6em;
+	font-weight: bold;
+	color: var(--button);
+	text-align: center;
+	margin: .75em 0;
+	z-index: 10;
+	position: relative;
 }
 
 /* Add to Cart Button */
 .sqs-add-to-cart-button {
-    font-weight: bold;
-    padding: 0 !important;
-    display: block !important;
-    border-radius: 5px !important;
+	font-weight: bold;
+	padding: 0 !important;
+	display: block !important;
+	border-radius: 5px !important;
 }
+
 .sqs-add-to-cart-button div {
-    font-size: .8em;
-    padding: 0.3em 0.2em;
-    font-weight:bold;
-    text-align: center;
+	font-size: 0.8em;
+	padding: 0.4em;
+	font-weight: bold;
+	text-align: center;
 }
+
 .sqs-add-to-cart-button-wrapper {
-    margin: 2px !important;
-    min-width: initial !important;
-    /* border-radius: 4px; */
+	margin: 2px !important;
+	min-width: initial !important;
+	/* border-radius: 4px; */
 }
-/*  Add to Cart - Finish */ 
-    
+/*  Add to Cart - Finish */
+
 .stats-container {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-column: 2;
-    gap: inherit;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-column: 2;
+	gap: inherit;
 }
-.stats-container .stats-row {
-    padding: 0 20px;
-}
+
+	.stats-container .stats-row {
+		padding: 0 20px;
+	}
 
 .sqs-block-code {
 	padding: 0;
 }
 
 .grid-date {
-    border: 2px solid;    
+	border: 2px solid;
 }
 
 .sqs-editable-button {
-    color: var(--buttonColor) !important;
-    background-color: var(--buttonBackGround) !important;
-    border-color: var(--buttonBorder) !important;
+	color: var(--buttonColor) !important;
+	background-color: var(--buttonBackGround) !important;
+	border-color: var(--buttonBorder) !important;
 }
 
 .grid-date:not(.filler-date) {
-    border-color: var(--blueDateBorder);
-    background-color: var(--blueDateBackGround);
+	border-color: var(--blueDateBorder);
+	background-color: var(--blueDateBackGround);
 }
 
 .sqs-add-to-cart-button,
 .sqs-add-to-cart-button-inner {
-    color: var(--white);
-    border-color: var(--lightBlue) !important;
-    background-color: var(--lightBlue);
+	color: var(--white);
+	border-color: var(--lightBlue) !important;
+	background-color: var(--lightBlue);
 }
 
 .grid-date.blue-date,
-.grid-date.peak {    
-    border-color: var(--redDateBorder);
-    background-color: var(--redDateBackGround);
+.grid-date.peak {
+	border-color: var(--redDateBorder);
+	background-color: var(--redDateBackGround);
 }
 
 .peak .sqs-add-to-cart-button,
 .peak .sqs-add-to-cart-button-inner {
-    color: var(--white);
-    border-color: var(--lightBlue) !important;
-    background-color: var(--lightBlue);
+	color: var(--white);
+	border-color: var(--lightBlue) !important;
+	background-color: var(--lightBlue);
 }
 
 .peak .sqs-editable-button {
-    color: var(--buttonPeakColor) !important;
-    background-color: var(--buttonPeakBackGround) !important;
-    border-color: var(--buttonPeakBorder) !important;
+	color: var(--buttonPeakColor) !important;
+	background-color: var(--buttonPeakBackGround) !important;
+	border-color: var(--buttonPeakBorder) !important;
 }
 
-.grid-date.outOfStock  {
-    border-color:var(--outOfStockBorder);
-    background-color:var(--outOfStockBackGround);
+.grid-date.outOfStock {
+	border-color: var(--outOfStockBorder);
+	background-color: var(--outOfStockBackGround);
 }
 
 .outOfStock .sqs-add-to-cart-button,
 .outOfStock .sqs-add-to-cart-button-inner {
-    color: var(--white);
-    border-color: var(--grey) !important;
-    background-color: var(--grey);
+	color: var(--white);
+	border-color: var(--grey) !important;
+	background-color: var(--grey);
 }
 
 .grid-date:hover {
-    background-color: var(--dateHoverBackGround);    
-    outline: 0;
-    box-shadow: 0 0 4px 4px var(--dateHoverShadow); 
+	background-color: var(--dateHoverBackGround);
+	outline: 0;
+	box-shadow: 0 0 4px 4px var(--dateHoverShadow);
 }
+
 .scheduled .sqs-add-to-cart-button,
 .scheduled .sqs-add-to-cart-button-inner {
-    color: var(--white);
-    border-color: var(--scheduled) !important;
-    background-color: var(--scheduled);
+	color: var(--white);
+	border-color: var(--scheduled) !important;
+	background-color: var(--scheduled);
 }
 
 div.grid-item:not(.grid-header):not(.blank-day):not(.grid-title):hover {
-    background-color: var(--dateHoverBackGround);    
-    outline: 0;
-    box-shadow: 0 0 4px 4px var(--dateHoverShadow); 
+	background-color: var(--dateHoverBackGround);
+	outline: 0;
+	box-shadow: 0 0 4px 4px var(--dateHoverShadow);
 }
+
 .grid-summary {
-    padding: 5px !important;
+	padding: 5px !important;
 }
 
 .grid-title.summary-title {
-    grid-column-end: 4;
+	grid-column-end: 4;
 }
 
 .summary-title h2 {
-    margin: 4px;
-    padding: 4px;
+	margin: 4px;
+	padding: 4px;
 }
 
 .stats-container {
-    grid-column: 4;
-    grid-column-start: 4;
-    grid-column-end: 8;
-    grid-template-columns: none;
+	grid-column: 4;
+	grid-column-start: 4;
+	grid-column-end: 8;
+	grid-template-columns: none;
 }
 
 .table td.data-head {
-    font-weight: bold;
+	font-weight: bold;
+}
+
+.table td.data-value,
+.table td.data-required,
+.table td.data-icon
+{
+	text-align: center;
 }
 
 span.tooltip {
-    visibility: hidden;
-    width: 150px;
-    background-color: var(--tooltipBackground);
-    color: var(--white);
-    text-align: center;
-    padding: 5px;
-    border-radius: 6px;
-    position: absolute;
-    z-index: 10;
-    bottom: 110%;
-    left: 50%;
-    margin-left: -80px;
+	visibility: hidden;
+	width: 150px;
+	background-color: var(--tooltipBackground);
+	color: var(--white);
+	text-align: center;
+	padding: 5px;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 10;
+	bottom: 110%;
+	left: 50%;
+	margin-left: -80px;
 }
 
 .grid-item:hover .tooltip {
-    visibility: visible;
+	visibility: visible;
 }
