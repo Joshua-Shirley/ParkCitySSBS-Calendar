@@ -1,5 +1,15 @@
 (() => {
-    if (window.location.href.endsWith("/cart")) {
+    if (window.location.href.includes("/cart")) {
+        Date.prototype.compareDate = function (dateB) {
+            if (this.getFullYear() == dateB.getFullYear()) {
+                if (this.getMonth() == dateB.getMonth()) {
+                    if (this.getDate() == dateB.getDate()) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
 
         let cartHelper = {
             products: [],
@@ -14,6 +24,7 @@
             referrer: null,
             initiated: false,
             linksLoaded: false,
+            referenceId: -1,
             init: function () {
                 // call it once
                 if (this.initiated == false) {
@@ -25,6 +36,9 @@
                     // fetches all the cart rows and converts the elements in a Product class list
                     this.fillProducts();
 
+                    // Rewrite cart row descriptions
+                    this.rewriteRows(this.products)
+
                     // links & filters
                     this.nodes.return = this.returnLink();
                     this.nodes.filterMonth = this.filterMonth();
@@ -35,6 +49,22 @@
                     // Make sure each button has a click event
                     this.clickRemove();
 
+                    // is there a reference
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams) {
+                        const year = parseInt(urlParams.get("y"));
+                        const month = parseInt(urlParams.get("m"));
+                        const day = parseInt(urlParams.get("d"));
+                        const date = new Date(year, month - 1, day);
+                        if (!isNaN(Date.parse(date)))
+                        {
+                            var product = this.products.filter(p => p.date.compareDate(date))[0];
+                            if (product != null && product != undefined) {
+                                product.element.classList.add("focus");
+                            }
+                        }
+                    }
+
                     this.initiated = true;
                 }
             },
@@ -42,12 +72,6 @@
             /* sort is called everytime the row count changes */
             sort: function () {
                 this.init();
-
-                // reset the products array
-                //this.products = [];
-
-                // fetches all the cart rows and converts the elements in a Product class list
-                //this.fillProducts();
 
                 // sort the current list
                 this.sortAscending();
@@ -67,13 +91,20 @@
                         this.element = element;
                         this.date = new Date(date);
                     }
+                    product = "";
+                    note = "";
                 }
 
                 var list = [];
                 this.elements.forEach(row => {
                     var descriptionDiv = row.querySelector(".cart-row-desc a");
                     var description = descriptionDiv.innerText;
-                    var match = description.match(/\d{1,2}\/\d{1,2}([\/\d{4}]*)/);
+
+                    // Date REGEX
+                    let patternDate = /(\d{1,2})\/(\d{1,2})([\/\d{4}]*)/;
+                    //var match = description.match(/\d{1,2}\/\d{1,2}([\/\d{4}]*)/); 
+                    var match = description.match(patternDate);
+                    var date = new Date(2024, 10, 1);
                     if (match != null) {
                         var date = new Date(match[0]);
                         if (date.getFullYear() == 2001) {
@@ -83,11 +114,32 @@
                             }
                             date.setFullYear(year);
                         }
-                        list.push(new Product(row, date));
-                    } else {
-                        list.push(new Product(row, new Date(2024, 10, 1)));
+                    } 
+                    var product = new Product(row, date);
+
+                    // Notes and Peak Information
+                    var matchNote = description.match(/([pP]eak [() ,\w]*)/);
+                    if (matchNote != null) {
+                        product.note = matchNote[0];
                     }
+                    description = description.replace(/([pP]eak [() ,\w]*)/, "");
+
+                    // remove the date from the descriptio string
+                    description = description.replace(/(\d{1,2})\/(\d{1,2})([\/\d{4}]*)/, "");
+                    description = description.replaceAll(" - ", " ");
+                    description = description.replaceAll("  ", " ");
+                    product.product = description;
+
+                    // Get the product name / type
+                    //var matchType = description.match(/([\w\s -]+)/);
+                    //var matchType = description.match(/([^\d]*)/);
+                    //if (matchType != null) {
+                    //    product.product = matchType[0].replace("-","").trim();
+                    //}
+
+                    list.push(product);
                 });
+               
                 this.products.push(...list);
                 return list;
             },
@@ -178,6 +230,42 @@
                         return true;
                     }
                 }
+            },
+
+            rewriteRows: function (products) {
+                function span(cls, innerText) {
+                    var span = document.createElement("span");
+                    span.classList.add(cls);
+                    span.innerText = innerText;
+                    return span;
+                }
+                products.forEach(row => {
+                    var link = row.element.querySelector(".cart-row-desc a");
+                    link.innerHTML = null;
+
+                    var weekDayString = "";
+                    var longDateString = "";
+                    if (!row.date.compareDate(new Date(2024, 10, 1))) {
+                        weekDayString = row.date.toLocaleDateString("en-US", { weekday: "long", });
+                        longDateString = row.date.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "numeric",
+                            day: "numeric",
+                        });
+                    }
+
+                    // Weekday
+                    link.append(span("column-weekday", weekDayString));
+                    // Date
+                    link.append(span("column-date", longDateString));
+                    // Product Name
+                    link.append(span("column-product", row.product.trim()));
+
+                    // Note
+                    if (row.note != "") {
+                        link.append(span("column-note", row.note.trim()));
+                    }
+                });
             },
 
             getDistinctMonths: function (products) {
@@ -278,17 +366,6 @@
                 }
             },
         }
-
-        Date.prototype.compareDate = function (dateB) {
-            if (this.getFullYear() == dateB.getFullYear()) {
-                if (this.getMonth() == dateB.getMonth()) {
-                    if (this.getDate() == dateB.getDate()) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
 
         /* WORK AROUNDS 
         
