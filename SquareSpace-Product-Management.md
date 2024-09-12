@@ -1,9 +1,9 @@
 # Square Space Product Administration
 ## Product Set Up
 
-[SKU](### SKU Formating) [Title](### Title) [Description](### Description) [Image](### Images) [Price](### Price)
+[SKU](#sku) [Title](### Title) [Description](### Description) [Image](### Images) [Price](### Price)
 
-### SKU Formating
+### <a name="sku"></a>SKU Formating
 
 Calendar products that are intended to be included in the calendar view need to maintain a specific text pattern.  
 Each season the product SKU's need to be updated to reflect the current season and correct days.
