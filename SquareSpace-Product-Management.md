@@ -1,5 +1,8 @@
 # Square Space Product Administration
 ## Product Set Up
+
+[SKU](### SKU Formating) [Title](### Title) [Description](### Description) [Image](### Images) [Price](### Price)
+
 ### SKU Formating
 
 Calendar products that are intended to be included in the calendar view need to maintain a specific text pattern.  
@@ -33,7 +36,7 @@ Here is a space to add a few characters to add additional information to pass al
 Mostly this is used to add the name of the local's program.  
 IE:  2024-12-17-PG-**LTR**
 
-### Titles ###
+### Title
 
 Product titles pass along a short descriptive information about the product.  
 The title is also parsed into sections for the cart view.  
@@ -58,18 +61,22 @@ Here are some examples:
   PRODUCT NAME - MM/DD/YYYY  
 
 
-### Description ###
+### Description
 
 Product descriptions are not used in the calendar script.  The information entered here can help the user glean more information.  
 **Bundled Products** check out the readme page for bundeled products for that specific use.
 
-### Images ###
+### Images
 
 Images are not displayed in the calendar format.  Adding a product image is optional.  But adding an image can be useful for script degradation (ie the calendar format script fails to excute properly.)
 **Important** make sure the images is checked as visible.  Square Space uses the image container to pass along Out Of Stock status to the user.  The calendar script grabs that instock/outofstock from the image before the image is hidden from the user.
 
-### Price ###
+### Price
 
 Product prices should be set to $0.00.  
 Prices are hidden from the user in all phases except the cart checkout.
 **Important** make sure the price is checked as visible.
+
+
+## Shopping Page Set Up ##
+
