@@ -5,6 +5,40 @@
 A guide on how to implement the Javascript and Cascading Style Sheets within the SquareSpace website.
 
 
+
+## Product Administration
+
+### SKU NUMBERS FORMATTING
+
+Calendar products that are intended to be included in the calendar view need to maintain a specific text pattern.  
+Each season the product SKU's need to be updated to reflect the current season and correct days.
+
+    YYYY-MM-DD
+    YYYY-MM-DD-CATEGORY
+    YYYY-MM-DD-CATEGORY-ADDITIONAL
+
+**Examples**
+2025-02-05-NHRe-SKI
+2024-12-01-SKI
+2024-12-01-SB
+2024-12-01-TR
+2024-12-17-PG-FARMTEAM
+
+**Categories**
+
+| Syntax | Description       |
+| ------ | ----------------- |
+| SKI    | Retail Ski        |
+| SB     | Retail Snowboard  |
+| PG     | Local's Program   |
+| TR     | Trainer           |
+| PDT    | Paid Training Day |
+
+
+
+### Titles ###
+
+
     Change the settings properties to get the 
     enter dates using the MM/DD/YYYY format IE: "11/25/2024" inside a new Date() function like - new Date("11/25/2024")
 
