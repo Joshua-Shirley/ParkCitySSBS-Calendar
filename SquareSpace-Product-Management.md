@@ -14,7 +14,6 @@ Each season the product SKU's need to be updated to reflect the current season a
     YYYY-MM-DD-CATEGORY-ADDITIONAL
 
 **Examples**  
-2025-02-05-NHRe-SKI  
 2024-12-01-SKI  
 2024-12-01-SB  
 2024-12-01-TR  
@@ -27,6 +26,7 @@ Each season the product SKU's need to be updated to reflect the current season a
 | ------ | ----------------- |
 | SKI    | Retail Ski        |
 | SB     | Retail Snowboard  |
+| AST    | Retail Assistant  |
 | PG     | Local's Program   |
 | TR     | Trainer           |
 | PDT    | Paid Training Day |
