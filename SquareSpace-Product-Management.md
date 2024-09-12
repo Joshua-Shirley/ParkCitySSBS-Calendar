@@ -67,6 +67,7 @@ Here are some examples:
 
 Product descriptions are not used in the calendar script.  The information entered here can help the user glean more information.  
 **Bundled Products** check out the readme page for bundeled products for that specific use.  
+
 ---  
 ### <a name="image"></a>Images
 
