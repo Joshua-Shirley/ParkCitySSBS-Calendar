@@ -34,6 +34,10 @@ const calendar = {
             month1: 0,
             month2: 0,
             month3: 0,
+            // Trainer
+            training: 0,
+            // Paid Training
+            paidTraining: 0,
         },
         button: {
             on: "On",
@@ -41,6 +45,7 @@ const calendar = {
             full: "Full",
         },
         summary: {
+            display: true,
             title: "Summary",
 
             // Table Header Row
@@ -54,13 +59,24 @@ const calendar = {
             coreText: "Days in Core Season",
             holiday: "Holiday Requirement",
             thanksgiving: "Thanksgiving Week",
+            paidTraining: "Paid Training",
 
             // Part Time 18 Requirement Labels
             month1: "December",
             month2: "February",
             month3: "March",
 
+            // Trainer 
+            trainerDays: "Training Days",
+
             checkmark: '<svg xmlns="http://www.w3.org/2000/svg" height="18px" width="18px" id="checkMark" viewBox="0 0 17.837 17.837"><g><path style="fill:green;" d="M16.145,2.571c-0.272-0.273-0.718-0.273-0.99,0L6.92,10.804l-4.241-4.27   c-0.272-0.274-0.715-0.274-0.989,0L0.204,8.019c-0.272,0.271-0.272,0.717,0,0.99l6.217,6.258c0.272,0.271,0.715,0.271,0.99,0   L17.63,5.047c0.276-0.273,0.276-0.72,0-0.994L16.145,2.571z"></path></g></svg >',
+        },
+        tooltip: {
+            peak: "Peak",
+            trainer: "Trainer",
+            scheduled: "Scheduled",
+            outOfStock: "No Availability",
+            paidTraining: "Paid Training",
         }
     },
     stats: {
@@ -74,9 +90,13 @@ const calendar = {
         month1: 0,
         month2: 0,
         month3: 0,
+        // Training
+        training: 0,
+        // Paid Training
+        paidTraining: 0,
         update: function () {
             
-            const scheduledList = calendar.data.products.filter(product => product.scheduled == true);
+            const scheduledList = calendar.data.products.filter(product => product.scheduled == true && product.paidTraining == false);
             this.total = scheduledList.length;
             this.required = scheduledList.filter(product => product.peak == true).length;
 
@@ -121,6 +141,10 @@ const calendar = {
                 this.month2 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(calendar.settings.summary.month2) ).length;
                 this.month3 = scheduledList.filter(product => product.date.getMonth() == monthNames.indexOf(calendar.settings.summary.month3) ).length;
             }
+            if (group == "trainer") {
+                this.training = scheduledList.filter(product => product.trainer == true && product.title.includes("Trainer")).length;
+            }
+            this.paidTraining = calendar.data.products.filter(product => product.paidTraining == true).length;
         },
     },
     initiate: function () {
@@ -132,6 +156,7 @@ const calendar = {
 
         this.view.calendar(this.settings, this.data.products);
         this.view.peakDates(this.data.products);
+        this.view.trainerDates(this.data.products);
         this.view.outofStockDates(this.data.products, this.settings.button.full);
         this.view.addClickEvent();
         // execute after short delay to allow cart to load
@@ -160,6 +185,8 @@ const calendar = {
         scheduled: [],
         localProgram: null,
         programDates: [],
+        trainerDates: [],
+        paidTraining: [],
         collectAll: function () {
             this.products = this.collectProducts();
             this.scheduled = this.fetchSchedule();
@@ -172,7 +199,7 @@ const calendar = {
             const containerHolder = elements[0].parentElement;
 
             elements.forEach(function (element) {
-                var date = parseDate(element);
+                var date = parseDate2(element);
                 var product = new Product(date, element);
                 product.title = productTitle(element);
                 product.peak = false;
@@ -199,6 +226,10 @@ const calendar = {
             });
             //}
 
+            products.forEach(product => {
+                product.trainer = isTrainerDate(product.element);
+            });
+
             function parseDate(element, year) {
                 var linkElement = element.querySelector("a");
                 var href = linkElement.href;
@@ -212,6 +243,17 @@ const calendar = {
                 }
                 var date = new Date(year, month, day);
                 return date;
+            }
+
+            function parseDate2(element) {
+                var linkElement = element.querySelector("a.product-title");
+                var innerText = linkElement.innerText;
+                var match = innerText.match(/\d{1,2}\/\d{1,2}([\/\d{4}]*)/);
+                if (match != null) {
+                    var date = new Date(match[0]);
+                    return date;
+                }
+                return null;
             }
 
             function isInStock(element) {
@@ -233,6 +275,7 @@ const calendar = {
             function isPeakDate(element) {
                 // Peak dates are found in product titles with the following format = PEAK (FT, PT4, PT18)
                 try {
+                    // go to the product title A link and extract the keyword PEAK
                     var excerpt = element.querySelector(".product-title").innerText.toLowerCase();
                     if (excerpt.includes("peak")) {
                         if (excerpt.includes(calendar.settings.peakDayIndicator.toLowerCase())) {
@@ -244,6 +287,23 @@ const calendar = {
                     console.log("PEAK DATE ERROR: Product Title missing.  Display title for all products.", element.id);
                 }
                 return false;
+            }
+
+            function isTrainerDate(element) {
+                try {
+                    var excerpt = element.querySelector(".product-title").innerText.toLowerCase();
+                    if (excerpt.includes("trainer")) {
+                        return true;
+                    }
+                }
+                catch {
+                    console.log("Trainer Error: Product Title missing.", element.id);
+                }
+                return false;
+            }
+
+            function isPaidTraining(element) {
+
             }
 
             function getProductId(element) {
@@ -278,11 +338,12 @@ const calendar = {
                                     var item = new cartItem(entry.id, entry.itemId, entry.chosenVariant.sku);
                                     calendar.data.programDates.push(item);
                                 }
+                                // check for the program name and save it to the data.localProgram property
                                 if (entry.chosenVariant.sku.toLowerCase().startsWith("program")) {
                                     calendar.data.localProgram = entry.chosenVariant.sku.replace("PROGRAM-", "").replaceAll("-", " ");
                                 }
                             });
-                        }
+                        } 
 
                         // ADD ON FOR PROGRAM DATES
                         // find the products that are program products
@@ -307,6 +368,85 @@ const calendar = {
                                     localProduct.program = true;
                                     localProduct.scheduled = true;
                                     localProduct.title = calendar.data.localProgram;
+                                    localProduct.element = fillerDateBlock(item);
+                                    calendar.data.products.push(localProduct);
+                                }
+                            }
+                        });
+
+                        // Check the cart for training products
+                        if (calendar.data.trainerDates.length == 0) {
+                            data.entries.forEach(entry => {
+                                if (entry.chosenVariant.sku.includes("-TR")
+                                    || entry.chosenVariant.sku.includes("-NH-")
+                                    || entry.chosenVariant.sku.includes("-NHB")
+                                    || entry.chosenVariant.sku.includes("-NHRe")
+                                ) {
+                                    var item = new cartItem(entry.id, entry.itemId, entry.chosenVariant.sku);
+                                    calendar.data.trainerDates.push(item);
+                                }
+                            });
+                        }
+
+                        calendar.data.trainerDates.forEach(item => {
+                            try {
+                                var product = calendar.data.products.find(product => product.date.compareDate(item.date));
+                                product.trainer = true;
+                                product.scheduled = true;
+
+                                // disable the duplicate date from click
+                                var button = product.element.querySelector(".sqs-add-to-cart-button");
+                                button.removeAttribute("data-item-id");
+                                button.removeAttribute("data-collection-id");
+                                button.removeAttribute("data-product-type");
+                            }
+                            catch {
+                                if (item.date) {
+                                    var localProduct = new Product(item.date, null);
+                                    localProduct.inStock = true;
+                                    localProduct.itemId = item.itemId;
+                                    localProduct.peak = false;
+                                    localProduct.program = false;
+                                    localProduct.scheduled = true;
+                                    localProduct.trainer = true;
+                                    localProduct.element = fillerDateBlock(item);
+                                    calendar.data.products.push(localProduct);
+                                }
+                            }
+                        });
+
+                        // Check for paid training dates
+                        if (calendar.data.trainerDates.length == 0) {
+                            data.entries.forEach(entry => {
+                                if (entry.chosenVariant.sku.includes("-PDT")) {
+                                    var item = new cartItem(entry.id, entry.itemId, entry.chosenVariant.sku);
+                                    calendar.data.paidTraining.push(item);
+                                }
+                            })
+                        }
+
+                        calendar.data.paidTraining.forEach(item => {
+                            try {
+                                var product = calendar.data.products.find(product => product.date.compareDate(item.date));
+                                product.paidTraining = true;
+                                product.scheduled = true;
+
+                                // disable the duplicate date from click
+                                var button = product.element.querySelector(".sqs-add-to-cart-button");
+                                button.removeAttribute("data-item-id");
+                                button.removeAttribute("data-collection-id");
+                                button.removeAttribute("data-product-type");
+                            }
+                            catch {
+                                if (item.date) {
+                                    var localProduct = new Product(item.date, null);
+                                    localProduct.inStock = true;
+                                    localProduct.itemId = item.itemId;
+                                    localProduct.peak = false;
+                                    localProduct.program = false;
+                                    localProduct.scheduled = true;
+                                    localProduct.trainer = false;
+                                    localProduct.paidTraining = true;
                                     localProduct.element = fillerDateBlock(item);
                                     calendar.data.products.push(localProduct);
                                 }
@@ -465,16 +605,22 @@ const calendar = {
             span.classList.add("tooltip");
             span.innerText = product.date.toDateString();
             if (product.peak) {
-                span.innerHTML += "<br>" + "Peak";
+                span.innerHTML += "<br>" + calendar.settings.tooltip.peak;
             }
             if (product.program) {
                 span.innerHTML += "<br>" + calendar.data.localProgram;
             }
+            if (product.trainer) {
+                span.innerHTML += "<br>" + calendar.settings.tooltip.trainer;
+            }
             if (product.scheduled) {
-                span.innerHTML += "<br>" + "Scheduled";
+                span.innerHTML += "<br>" + calendar.settings.tooltip.scheduled;
             }
             if (!product.inStock) {
-                span.innerHTML += "<br>" + "No Availability";
+                span.innerHTML += "<br>" + calendar.settings.tooltip.outOfStock;
+            }
+            if (product.paidTraining) {
+                span.innerHTML += "<br>" + "Paid Training";
             }
             product.element.appendChild(span);
         },
@@ -619,6 +765,12 @@ const calendar = {
                 product.element.classList.add("peak");
             });
         },
+        trainerDates: function (products) {
+            // filter for all the trainer products
+            products.filter(product => product.trainer == true).forEach(product => {
+                product.element.classList.add("trainer");
+            });
+        },
         scheduledDates: function () {
             // because the schedule list changes often 
             // clear all the .scheduled first
@@ -692,6 +844,8 @@ const calendar = {
                     new SummaryTableRow(summary.coreText, requirements.coreDays, "coreRequirement"),
                     new SummaryTableRow(summary.holiday, requirements.holiday, "holiday"),
                     new SummaryTableRow(summary.thanksgiving, requirements.thanksgiving, "thanks"),
+                    // Add paid training to the summary
+                    // new SummaryTableRow(summary.paidTraining, requirements.paidTraining, "paidTraining")
                 ];
             }
             if (group == "parttime32") {
@@ -708,9 +862,15 @@ const calendar = {
                     new SummaryTableRow(summary.month3, requirements.month3, "month3"),
                 ];
             }
+            if (group == "trainer") {
+                stats = [
+                    new SummaryTableRow(summary.trainerDays, requirements.training , "training"),
+                ];
+            }
 
             this.summaryTableIds = stats;
 
+            // Builder() takes a JSON object and creates a new html object
             function builder(obj) {
                 if (!obj.hasOwnProperty("tag")) { return null; }
                 var block = document.createElement(obj["tag"]);
@@ -747,6 +907,7 @@ const calendar = {
                 }
                 return block;
             }
+            // objectToTable() creates the JSON object needed for builder() to create a stats table
             function objectToTable(obj) {
                 var table = { "tag": "table", "id": "summary", "class": "table", "children": [], };
                 table.children.push({ "tag": "thead", "children": [] });
@@ -772,11 +933,6 @@ const calendar = {
                     table.children[1].children.push(row);
                 });
                 return table;
-            }
-            function registerIds() {
-                calendar.view.summaryTableIds.forEach(row => {
-                    row.dom = calendar.view.summaryTable.querySelector("#" + row.id);
-                });
             }
             // register an id for each td data-value cell.
 
@@ -808,11 +964,14 @@ const calendar = {
 
             this.summaryTable = builder(block);
 
+            // register each of the summary stats ids into a table for lookup for the stats update function
             this.summaryTableIds.forEach(row => {
                 row.domReference = this.summaryTable.querySelector("#data-value-" + row.id);
             });
 
-            this.containerHolder.appendChild(this.summaryTable);
+            if (calendar.settings.summary.display) {
+                this.containerHolder.appendChild(this.summaryTable);
+            }
         },
          
     },
@@ -858,6 +1017,8 @@ class Product {
     peak = false;
     scheduled = false;
     program = false;
+    trainer = false;
+    paidTraining = false;
 }
 /*
 cartItem used for collecting cart entries
