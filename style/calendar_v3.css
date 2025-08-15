@@ -29,6 +29,10 @@
 	--tooltipBackground: rgb(33 36 38);
 }
 
+div.sqs-block-content > div.product-block {    
+    border: 1px solid transparent;
+}
+
 .hide {
 	display: none;
 }
@@ -119,30 +123,50 @@ span.full {
 	font-weight: bold;
 	color: var(--button);
 	text-align: center;
-	margin: .75em 0;
+	margin: .75em 0 1.5em 0;
 	z-index: 10;
 	position: relative;
 }
 
+.product-scarcity {
+    font-size: 9px !important;
+    font-style: italic;
+    padding-top: 0;
+    margin: 0 !important;
+}
+
+.product-scarcity {
+    margin-top: -2.29em !important;
+}
+
+
 /* Add to Cart Button */
+
+.sqs-block[data-definition-name="website.components.product"] .product-block .productDetails .product-purchase-controls-wrapper .sqs-add-to-cart-button-wrapper .sqs-add-to-cart-button {
+    padding:  2px !important;
+}
+
+.sqs-block[data-definition-name="website.components.product"] .product-block .productDetails .product-purchase-controls-wrapper .sqs-add-to-cart-button-wrapper .sqs-add-to-cart-button .sqs-add-to-cart-button-inner {
+    word-wrap: initial !important;
+    word-break: initial !important;
+}
+
 .sqs-add-to-cart-button {
 	font-weight: bold;
 	padding: 0 !important;
 	display: block !important;
 	border-radius: 5px !important;
+	word-wrap: initial !important;
+	word-break: initial !important;
 }
 
-.sqs-add-to-cart-button div {
-	font-size: 0.8em;
-	padding: 0.4em;
-	font-weight: bold;
-	text-align: center;
+.sqs-add-to-cart-button div {	
+	padding: 0.4em;	
 }
 
 .sqs-add-to-cart-button-wrapper {
 	margin: 2px !important;
-	min-width: initial !important;
-	/* border-radius: 4px; */
+	min-width: initial !important;	
 }
 /*  Add to Cart - Finish */
 
@@ -181,6 +205,10 @@ span.full {
 	color: var(--white);
 	border-color: var(--lightBlue) !important;
 	background-color: var(--lightBlue);
+}
+
+.sqs-add-to-cart-button-wrapper .sqs-add-to-cart-button-inner {
+	width: unset !important;
 }
 
 .grid-date.blue-date,
@@ -284,22 +312,15 @@ span.tooltip {
 }
 
 
-a.product-status-link {
+.product-mark.sold-out {
     display: none !important;
 }
 
-div.sqs-add-to-cart-button-wrapper {
-    width: 100% !important;    
+.product-block .image-container a {
+    display: none !important;
 }
 
-div.sqs-add-to-cart-button-wrapper button {    
-    margin: 0 auto !important;
+button.sqs-add-to-cart-button {
+    width: 100% !important;
 }
 
-div.image-container a:first-child {
-    color: transparent;
-}
-
-.product-scarcity {
-    display: none;
-}

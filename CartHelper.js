@@ -1,3 +1,5 @@
+// Version 4.1.0
+// Josh Shirley 8-14-2025
 (() => {
     if (window.location.href.includes("/cart")) {
         Date.prototype.compareDate = function (dateB) {
@@ -28,6 +30,10 @@
             init: function () {
                 // call it once
                 if (this.initiated == false) {
+
+                    // Return to product selection page link
+                    this.continueShoppingButton();
+
                     // locate the contain element
                     this.container = document.querySelector(".cart-container");
                     // get all the elements
@@ -43,6 +49,7 @@
                     this.nodes.return = this.returnLink();
                     this.nodes.filterMonth = this.filterMonth();
                     this.nodes.reset = this.resetOption();
+
                     // Add the links for sorting and filtering
                     this.cartLinks();
 
@@ -56,8 +63,7 @@
                         const month = parseInt(urlParams.get("m"));
                         const day = parseInt(urlParams.get("d"));
                         const date = new Date(year, month - 1, day);
-                        if (!isNaN(Date.parse(date)))
-                        {
+                        if (!isNaN(Date.parse(date))) {
                             var product = this.products.filter(p => p.date.compareDate(date))[0];
                             if (product != null && product != undefined) {
                                 product.element.classList.add("focus");
@@ -97,7 +103,8 @@
 
                 var list = [];
                 this.elements.forEach(row => {
-                    var descriptionDiv = row.querySelector(".cart-row-desc a");
+                    /*var descriptionDiv = row.querySelector(".cart-row-desc a");*/
+                    var descriptionDiv = row.querySelector(".cart-row-title");
                     var description = descriptionDiv.innerText;
 
                     // Date REGEX
@@ -114,7 +121,7 @@
                             }
                             date.setFullYear(year);
                         }
-                    } 
+                    }
                     var product = new Product(row, date);
 
                     // Notes and Peak Information
@@ -139,7 +146,7 @@
 
                     list.push(product);
                 });
-               
+
                 this.products.push(...list);
                 return list;
             },
@@ -169,6 +176,7 @@
             referrerLink: function () {
 
                 if (this.referrer != null) {
+
                     return this.referrer;
                 }
                 else if (getCookie("calendar") != null) {
@@ -211,6 +219,17 @@
                 return link;
             },
 
+            continueShoppingButton: function () {
+                console.log("Updating 'continue shopping' link");
+                try {
+                    var link = document.querySelector("#sqs-cart-container > div > a");
+                    link.href = this.referrerLink();
+                }
+                catch {
+                    console.log("continue shopping link not alterated.")
+                }
+            },
+
             resetOption: function () {
                 var button = document.createElement("a");
                 button.href = "/cart";
@@ -240,7 +259,8 @@
                     return span;
                 }
                 products.forEach(row => {
-                    var link = row.element.querySelector(".cart-row-desc a");
+                    /* var link = row.element.querySelector(".cart-row-desc a"); */
+                    var link = row.element.querySelector(".cart-row-title");
                     link.innerHTML = null;
 
                     var weekDayString = "";
@@ -367,8 +387,54 @@
             },
         }
 
-        /* WORK AROUNDS 
-        
+        function referrerLink() {
+            var referrer = null;
+            if (getCookie("calendar") != null) {
+                referrer = getCookie("calendar");
+            }
+            else {
+                const url = new URL(document.referrer);
+                setCookie("calendar", url.pathname, 60);
+                referrer = url.pathname;
+            }
+            return referrer;
+
+            function getCookie(cname) {
+                let name = cname + "=";
+                let decodedCookie = decodeURIComponent(document.cookie);
+                let ca = decodedCookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) == ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) == 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return null;
+            }
+            function setCookie(cname, cvalue, exdays) {
+                const d = new Date();
+                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+                let expires = "expires=" + d.toUTCString();
+                document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+            }
+        }
+
+        function continueShoppingButton() {            
+            try {
+                var link = document.querySelector('[aria-label="Continue Shopping"]');;
+                link.href = referrerLink();
+            }
+            catch {
+                console.log("continue shopping link not alterated.")
+            }
+        }
+
+        continueShoppingButton();
+
+        /* WORK AROUNDS         
         the script needs to execute after the page completes loading.
         this keeps checking for the container every 1/2 second before executing
         */
@@ -382,9 +448,14 @@
             }
         }
 
+        if (document.querySelector(".cart-container")) {
+            cartHelper.continueShoppingButton();
+        }
+
         waitForPageLoad(".cart-container", (element) => {
             cartHelper.sort();
         });
+
 
     }
 })();
